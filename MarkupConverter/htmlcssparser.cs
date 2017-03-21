@@ -8,19 +8,18 @@
 //
 //---------------------------------------------------------------------------
 
-namespace HTMLConverter
-{
-    using System;
-    using System.Xml;
-    using System.Diagnostics;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Text;
-    using System.IO;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+using System.Xml.Linq;
 
-    using System.Windows; // DependencyProperty
-    using System.Windows.Documents; // TextElement
-  
+namespace MarkupConverter
+{
+    // DependencyProperty
+
+    // TextElement
+
     internal static class HtmlCssParser
     {
         // .................................................................
@@ -29,7 +28,7 @@ namespace HTMLConverter
         //
         // .................................................................
 
-        internal static void GetElementPropertiesFromCssAttributes(XmlElement htmlElement, string elementName, CssStylesheet stylesheet, Hashtable localProperties, List<XmlElement> sourceContext)
+        internal static void GetElementPropertiesFromCssAttributes(XElement htmlElement, string elementName, CssStylesheet stylesheet, IDictionary<object, object> localProperties, List<XElement> sourceContext)
         {
             string styleFromStylesheet = stylesheet.GetStyle(elementName, sourceContext);
 
@@ -249,7 +248,7 @@ namespace HTMLConverter
             return null;
         }
 
-        private static void ParseWordEnumeration(string[] words, string styleValue, ref int nextIndex, Hashtable localProperties, string attributeName)
+        private static void ParseWordEnumeration(string[] words, string styleValue, ref int nextIndex, IDictionary<object, object> localProperties, string attributeName)
         {
             string attributeValue = ParseWordEnumeration(words, styleValue, ref nextIndex);
             if (attributeValue != null)
@@ -291,14 +290,22 @@ namespace HTMLConverter
                 }
                 else
                 {
-                    return number + unit;
+                    double val;
+                    if (HtmlToXamlConverter.TryGetLengthValue(number + unit, out val))
+                    {
+                        return val.ToString("0.#");
+                    }
+                    else
+                    {
+                        return "0";
+                    }
                 }
             }
 
             return null;
         }
 
-        private static void ParseCssSize(string styleValue, ref int nextIndex, Hashtable localValues, string propertyName, bool mustBeNonNegative)
+        private static void ParseCssSize(string styleValue, ref int nextIndex, IDictionary<object, object> localValues, string propertyName, bool mustBeNonNegative)
         {
             string length = ParseCssSize(styleValue, ref nextIndex, mustBeNonNegative);
             if (length != null)
@@ -318,7 +325,7 @@ namespace HTMLConverter
                 "ghostwhite", "gold", "goldenrod", "gray", "green", "greenyellow", "honeydew", "hotpink", "indianred",
                 "indigo", "ivory", "khaki", "lavender", "lavenderblush", "lawngreen", "lemonchiffon", "lightblue", "lightcoral",
                 "lightcyan", "lightgoldenrodyellow", "lightgreen", "lightgrey", "lightpink", "lightsalmon", "lightseagreen",
-                "lightskyblue", "lightslategray", "lightsteelblue", "lightyellow", "lime", "limegreen", "linen", "magenta", 
+                "lightskyblue", "lightslategray", "lightsteelblue", "lightyellow", "lime", "limegreen", "linen", "magenta",
                 "maroon", "mediumaquamarine", "mediumblue", "mediumorchid", "mediumpurple", "mediumseagreen", "mediumslateblue",
                 "mediumspringgreen", "mediumturquoise", "mediumvioletred", "midnightblue", "mintcream", "mistyrose", "moccasin",
                 "navajowhite", "navy", "oldlace", "olive", "olivedrab", "orange", "orangered", "orchid", "palegoldenrod",
@@ -401,7 +408,7 @@ namespace HTMLConverter
             return color;
         }
 
-        private static void ParseCssColor(string styleValue, ref int nextIndex, Hashtable localValues, string propertyName)
+        private static void ParseCssColor(string styleValue, ref int nextIndex, IDictionary<object, object> localValues, string propertyName)
         {
             string color = ParseCssColor(styleValue, ref nextIndex);
             if (color != null)
@@ -444,7 +451,7 @@ namespace HTMLConverter
         private static readonly string[] _fontSizeUnits = new string[] { "px", "mm", "cm", "in", "pt", "pc", "em", "ex", "%" };
 
         // Parses CSS string fontStyle representing a value for css font attribute
-        private static void ParseCssFont(string styleValue, Hashtable localProperties)
+        private static void ParseCssFont(string styleValue, IDictionary<object, object> localProperties)
         {
             int nextIndex = 0;
 
@@ -464,22 +471,22 @@ namespace HTMLConverter
             ParseCssFontFamily(styleValue, ref nextIndex, localProperties);
         }
 
-        private static void ParseCssFontStyle(string styleValue, ref int nextIndex, Hashtable localProperties)
+        private static void ParseCssFontStyle(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
         {
             ParseWordEnumeration(_fontStyles, styleValue, ref nextIndex, localProperties, "font-style");
         }
 
-        private static void ParseCssFontVariant(string styleValue, ref int nextIndex, Hashtable localProperties)
+        private static void ParseCssFontVariant(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
         {
             ParseWordEnumeration(_fontVariants, styleValue, ref nextIndex, localProperties, "font-variant");
         }
 
-        private static void ParseCssFontWeight(string styleValue, ref int nextIndex, Hashtable localProperties)
+        private static void ParseCssFontWeight(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
         {
             ParseWordEnumeration(_fontWeights, styleValue, ref nextIndex, localProperties, "font-weight");
         }
 
-        private static void ParseCssFontFamily(string styleValue, ref int nextIndex, Hashtable localProperties)
+        private static void ParseCssFontFamily(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
         {
             string fontFamilyList = null;
 
@@ -574,7 +581,7 @@ namespace HTMLConverter
         private static readonly string[] _listStyleTypes = new string[] { "disc", "circle", "square", "decimal", "lower-roman", "upper-roman", "lower-alpha", "upper-alpha", "none" };
         private static readonly string[] _listStylePositions = new string[] { "inside", "outside" };
 
-        private static void ParseCssListStyle(string styleValue, Hashtable localProperties)
+        private static void ParseCssListStyle(string styleValue, IDictionary<object, object> localProperties)
         {
             int nextIndex = 0;
 
@@ -633,7 +640,7 @@ namespace HTMLConverter
 
         private static readonly string[] _textDecorations = new string[] { "none", "underline", "overline", "line-through", "blink" };
 
-        private static void ParseCssTextDecoration(string styleValue, ref int nextIndex, Hashtable localProperties)
+        private static void ParseCssTextDecoration(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
         {
             // Set default text-decorations:none;
             for (int i = 1; i < _textDecorations.Length; i++)
@@ -661,7 +668,7 @@ namespace HTMLConverter
 
         private static readonly string[] _textTransforms = new string[] { "none", "capitalize", "uppercase", "lowercase" };
 
-        private static void ParseCssTextTransform(string styleValue, ref int nextIndex, Hashtable localProperties)
+        private static void ParseCssTextTransform(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
         {
             ParseWordEnumeration(_textTransforms, styleValue, ref nextIndex, localProperties, "text-transform");
         }
@@ -674,7 +681,7 @@ namespace HTMLConverter
 
         private static readonly string[] _textAligns = new string[] { "left", "right", "center", "justify" };
 
-        private static void ParseCssTextAlign(string styleValue, ref int nextIndex, Hashtable localProperties)
+        private static void ParseCssTextAlign(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
         {
             ParseWordEnumeration(_textAligns, styleValue, ref nextIndex, localProperties, "text-align");
         }
@@ -687,7 +694,7 @@ namespace HTMLConverter
 
         private static readonly string[] _verticalAligns = new string[] { "baseline", "sub", "super", "top", "text-top", "middle", "bottom", "text-bottom" };
 
-        private static void ParseCssVerticalAlign(string styleValue, ref int nextIndex, Hashtable localProperties)
+        private static void ParseCssVerticalAlign(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
         {
             //  Parse percentage value for vertical-align style
             ParseWordEnumeration(_verticalAligns, styleValue, ref nextIndex, localProperties, "vertical-align");
@@ -701,7 +708,7 @@ namespace HTMLConverter
 
         private static readonly string[] _floats = new string[] { "left", "right", "none" };
 
-        private static void ParseCssFloat(string styleValue, ref int nextIndex, Hashtable localProperties)
+        private static void ParseCssFloat(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
         {
             ParseWordEnumeration(_floats, styleValue, ref nextIndex, localProperties, "float");
         }
@@ -714,7 +721,7 @@ namespace HTMLConverter
 
         private static readonly string[] _clears = new string[] { "none", "left", "right", "both" };
 
-        private static void ParseCssClear(string styleValue, ref int nextIndex, Hashtable localProperties)
+        private static void ParseCssClear(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
         {
             ParseWordEnumeration(_clears, styleValue, ref nextIndex, localProperties, "clear");
         }
@@ -726,7 +733,7 @@ namespace HTMLConverter
         // .................................................................
 
         // Generic method for parsing any of four-values properties, such as margin, padding, border-width, border-style, border-color
-        private static bool ParseCssRectangleProperty(string styleValue, ref int nextIndex, Hashtable localProperties, string propertyName)
+        private static bool ParseCssRectangleProperty(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties, string propertyName)
         {
             // CSS Spec: 
             // If only one value is set, then the value applies to all four sides;
@@ -773,7 +780,7 @@ namespace HTMLConverter
 
         // border: [ <border-width> || <border-style> || <border-color> ]
 
-        private static void ParseCssBorder(string styleValue, ref int nextIndex, Hashtable localProperties)
+        private static void ParseCssBorder(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
         {
             while (
                 ParseCssRectangleProperty(styleValue, ref nextIndex, localProperties, "border-width") ||
@@ -811,7 +818,7 @@ namespace HTMLConverter
         //
         // .................................................................
 
-        private static void ParseCssBackground(string styleValue, ref int nextIndex, Hashtable localValues)
+        private static void ParseCssBackground(string styleValue, ref int nextIndex, IDictionary<object, object> localValues)
         {
             //  Implement parsing background attribute
         }
@@ -821,7 +828,7 @@ namespace HTMLConverter
     internal class CssStylesheet
     {
         // Constructor
-        public CssStylesheet(XmlElement htmlElement)
+        public CssStylesheet(XElement htmlElement)
         {
             if (htmlElement != null)
             {
@@ -831,23 +838,23 @@ namespace HTMLConverter
 
         // Recursively traverses an html tree, discovers STYLE elements and creates a style definition table
         // for further cascading style application
-        public void DiscoverStyleDefinitions(XmlElement htmlElement)
+        public void DiscoverStyleDefinitions(XElement htmlElement)
         {
-            if (htmlElement.LocalName.ToLower() == "link")
+            if (htmlElement.Name.LocalName.ToLower() == "link")
             {
                 return;
                 //  Add LINK elements processing for included stylesheets
                 // <LINK href="http://sc.msn.com/global/css/ptnr/orange.css" type=text/css \r\nrel=stylesheet>
             }
 
-            if (htmlElement.LocalName.ToLower() != "style")
+            if (htmlElement.Name.LocalName.ToLower() != "style")
             {
                 // This is not a STYLE element. Recurse into it
-                for (XmlNode htmlChildNode = htmlElement.FirstChild; htmlChildNode != null; htmlChildNode = htmlChildNode.NextSibling)
+                for (XNode htmlChildNode = htmlElement.FirstNode; htmlChildNode != null; htmlChildNode = htmlChildNode.NextNode)
                 {
-                    if (htmlChildNode is XmlElement)
+                    if (htmlChildNode is XElement)
                     {
-                        this.DiscoverStyleDefinitions((XmlElement)htmlChildNode);
+                        this.DiscoverStyleDefinitions((XElement)htmlChildNode);
                     }
                 }
                 return;
@@ -858,11 +865,15 @@ namespace HTMLConverter
             // Collect all text from this style definition
             StringBuilder stylesheetBuffer = new StringBuilder();
 
-            for (XmlNode htmlChildNode = htmlElement.FirstChild; htmlChildNode != null; htmlChildNode = htmlChildNode.NextSibling)
+            for (XNode htmlChildNode = htmlElement.FirstNode; htmlChildNode != null; htmlChildNode = htmlChildNode.NextNode)
             {
-                if (htmlChildNode is XmlText || htmlChildNode is XmlComment)
+                if (htmlChildNode is XText)
                 {
-                    stylesheetBuffer.Append(RemoveComments(htmlChildNode.Value));
+                    stylesheetBuffer.Append(RemoveComments(((XText)htmlChildNode).Value));
+                }
+                else if (htmlChildNode is XComment)
+                {
+                    stylesheetBuffer.Append(RemoveComments(((XComment)htmlChildNode).Value));
                 }
             }
 
@@ -964,15 +975,15 @@ namespace HTMLConverter
             }
         }
 
-        public string GetStyle(string elementName, List<XmlElement> sourceContext)
+        public string GetStyle(string elementName, List<XElement> sourceContext)
         {
             Debug.Assert(sourceContext.Count > 0);
-            Debug.Assert(elementName == sourceContext[sourceContext.Count - 1].LocalName);
+            Debug.Assert(elementName == sourceContext[sourceContext.Count - 1].Name.LocalName);
 
             //  Add id processing for style selectors
             if (_styleDefinitions != null)
             {
-                for (int i = _styleDefinitions.Count - 1; i >= 0;  i--)
+                for (int i = _styleDefinitions.Count - 1; i >= 0; i--)
                 {
                     string selector = _styleDefinitions[i].Selector;
 
@@ -992,7 +1003,7 @@ namespace HTMLConverter
             return null;
         }
 
-        private bool MatchSelectorLevel(string selectorLevel, XmlElement xmlElement)
+        private bool MatchSelectorLevel(string selectorLevel, XElement XElement)
         {
             if (selectorLevel.Length == 0)
             {
@@ -1026,17 +1037,17 @@ namespace HTMLConverter
                 selectorTag = selectorLevel;
             }
 
-            if (selectorTag != null && selectorTag != xmlElement.LocalName)
+            if (selectorTag != null && selectorTag != XElement.Name.LocalName)
             {
                 return false;
             }
 
-            if (selectorId != null && HtmlToXamlConverter.GetAttribute(xmlElement, "id") != selectorId)
+            if (selectorId != null && HtmlToXamlConverter.GetAttribute(XElement, "id") != selectorId)
             {
                 return false;
             }
 
-            if (selectorClass != null && HtmlToXamlConverter.GetAttribute(xmlElement, "class") != selectorClass)
+            if (selectorClass != null && HtmlToXamlConverter.GetAttribute(XElement, "class") != selectorClass)
             {
                 return false;
             }

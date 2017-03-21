@@ -8,16 +8,10 @@
 //
 //---------------------------------------------------------------------------
 
-using System;
-using System.Xml;
-using System.Diagnostics;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Text; // StringBuilder
+// StringBuilder
 
 // important TODOS: 
-// TODO 1. Start tags: The ParseXmlElement function has been modified to be called after both the 
+// TODO 1. Start tags: The ParseXElement function has been modified to be called after both the 
 // angle bracket < and element name have been read, instead of just the < bracket and some valid name character, 
 // previously the case. This change was made so that elements with optional closing tags could read a new
 // element's start tag and decide whether they were required to close. However, there is a question of whether to
@@ -52,7 +46,7 @@ using System.Text; // StringBuilder
 // The current recovery doesn;t do anything for any of these elements except the html element, because it's not critical - head
 // and body elementscan be contained within html element, and tbody is contained within table. To extend this for XHTML 
 // extensions, and to recover in case other elements are missing start tags, we would need to insert an extra recursive call
-// to ParseXmlElement for the missing start tag. It is suggested to do this by giving ParseXmlElement an argument that specifies
+// to ParseXElement for the missing start tag. It is suggested to do this by giving ParseXElement an argument that specifies
 // a name to use. If this argument is null, it  assumes its name is the next token from the lexical analyzer and continues
 // exactly as it does now. However, if the argument contains a valid html element name then it takes that value as its name
 // and continues as before. This way, if the next token is the element that should actually be its child, it will see
@@ -67,8 +61,14 @@ using System.Text; // StringBuilder
 // reading a table and ignore them otherwise? This may be too much of a load on the parser, I think it's better if the converter
 // deals with it
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Xml;
+using System.Xml.Linq;
 
-namespace HTMLConverter
+namespace MarkupConverter
 {
     /// <summary>
     /// HtmlParser class accepts a string of possibly badly formed Html, parses it and returns a string
@@ -94,12 +94,12 @@ namespace HTMLConverter
         private HtmlParser(string inputString)
         {
             // Create an output xml document
-            _document = new XmlDocument();
+            _document = new XDocument();
 
             // initialize open tag stack
-            _openedElements = new Stack<XmlElement>();
+            _openedElements = new Stack<XElement>();
 
-            _pendingInlineElements = new Stack<XmlElement>();
+            _pendingInlineElements = new Stack<XElement>();
 
             // initialize lexical analyzer
             _htmlLexicalAnalyzer = new HtmlLexicalAnalyzer(inputString);
@@ -125,13 +125,13 @@ namespace HTMLConverter
         /// Input string of pssibly badly-formed Html to be parsed into well-formed Html
         /// </param>
         /// <returns>
-        /// XmlElement rep
+        /// XElement rep
         /// </returns>
-        internal static XmlElement ParseHtml(string htmlString)
+        internal static XElement ParseHtml(string htmlString)
         {
             HtmlParser htmlParser = new HtmlParser(htmlString);
 
-            XmlElement htmlRootElement = htmlParser.ParseHtmlContent();
+            XElement htmlRootElement = htmlParser.ParseHtmlContent();
 
             return htmlRootElement;
         }
@@ -260,14 +260,14 @@ namespace HTMLConverter
         /// <summary>
         /// Parses the stream of html tokens starting
         /// from the name of top-level element.
-        /// Returns XmlElement representing the top-level
+        /// Returns XElement representing the top-level
         /// html element
         /// </summary>
-        private XmlElement ParseHtmlContent()
+        private XElement ParseHtmlContent()
         {
             // Create artificial root elelemt to be able to group multiple top-level elements
             // We create "html" element which may be a duplicate of real HTML element, which is ok, as HtmlConverter will swallow it painlessly..
-            XmlElement htmlRootElement = _document.CreateElement("html", XhtmlNamespace);
+            XElement htmlRootElement = new XElement(XName.Get("html", XhtmlNamespace));
             OpenStructuringElement(htmlRootElement);
 
             while (_htmlLexicalAnalyzer.NextTokenType != HtmlTokenType.EOF)
@@ -281,7 +281,7 @@ namespace HTMLConverter
                         _htmlLexicalAnalyzer.GetNextTagToken();
 
                         // Create an element
-                        XmlElement htmlElement = _document.CreateElement(htmlElementName, XhtmlNamespace);
+                        XElement htmlElement = new XElement(XName.Get(htmlElementName, XhtmlNamespace));
 
                         // Parse element attributes
                         ParseAttributes(htmlElement);
@@ -348,65 +348,54 @@ namespace HTMLConverter
             }
 
             // Get rid of the artificial root element
-            if (htmlRootElement.FirstChild is XmlElement &&
-                htmlRootElement.FirstChild == htmlRootElement.LastChild &&
-                htmlRootElement.FirstChild.LocalName.ToLower() == "html")
+            if (htmlRootElement.FirstNode is XElement &&
+                htmlRootElement.Elements().Count() == 1 &&
+                htmlRootElement.Elements().First().Name.LocalName.ToLower() == "html")
             {
-                htmlRootElement = (XmlElement)htmlRootElement.FirstChild;
+                htmlRootElement = (XElement)htmlRootElement.FirstNode;
             }
 
             return htmlRootElement;
         }
 
-        private XmlElement CreateElementCopy(XmlElement htmlElement)
-        {
-            XmlElement htmlElementCopy = _document.CreateElement(htmlElement.LocalName, XhtmlNamespace);
-            for (int i = 0; i < htmlElement.Attributes.Count; i++)
-            {
-                XmlAttribute attribute = htmlElement.Attributes[i];
-                htmlElementCopy.SetAttribute(attribute.Name, attribute.Value);
-            }
-            return htmlElementCopy;
-        }
-
-        private void AddEmptyElement(XmlElement htmlEmptyElement)
+        private void AddEmptyElement(XElement htmlEmptyElement)
         {
             InvariantAssert(_openedElements.Count > 0, "AddEmptyElement: Stack of opened elements cannot be empty, as we have at least one artificial root element");
-            XmlElement htmlParent = _openedElements.Peek();
-            htmlParent.AppendChild(htmlEmptyElement);
+            XElement htmlParent = _openedElements.Peek();
+            htmlParent.Add(htmlEmptyElement);
         }
 
-        private void OpenInlineElement(XmlElement htmlInlineElement)
+        private void OpenInlineElement(XElement htmlInlineElement)
         {
             _pendingInlineElements.Push(htmlInlineElement);
         }
 
         // Opens structurig element such as Div or Table etc.
-        private void OpenStructuringElement(XmlElement htmlElement)
+        private void OpenStructuringElement(XElement htmlElement)
         {
             // Close all pending inline elements
             // All block elements are considered as delimiters for inline elements
             // which forces all inline elements to be closed and re-opened in the following
             // structural element (if any).
             // By doing that we guarantee that all inline elements appear only within most nested blocks
-            if (HtmlSchema.IsBlockElement(htmlElement.LocalName))
+            if (HtmlSchema.IsBlockElement(htmlElement.Name.LocalName))
             {
-                while (_openedElements.Count > 0 && HtmlSchema.IsInlineElement(_openedElements.Peek().LocalName))
+                while (_openedElements.Count > 0 && HtmlSchema.IsInlineElement(_openedElements.Peek().Name.LocalName))
                 {
-                    XmlElement htmlInlineElement = _openedElements.Pop();
+                    XElement htmlInlineElement = _openedElements.Pop();
                     InvariantAssert(_openedElements.Count > 0, "OpenStructuringElement: stack of opened elements cannot become empty here");
 
-                    _pendingInlineElements.Push(CreateElementCopy(htmlInlineElement));
+                    _pendingInlineElements.Push(new XElement(htmlInlineElement));
                 }
             }
 
             // Add this block element to its parent
             if (_openedElements.Count > 0)
             {
-                XmlElement htmlParent = _openedElements.Peek();
+                XElement htmlParent = _openedElements.Peek();
 
                 // Check some known block elements for auto-closing (LI and P)
-                if (HtmlSchema.ClosesOnNextElementStart(htmlParent.LocalName, htmlElement.LocalName))
+                if (HtmlSchema.ClosesOnNextElementStart(htmlParent.Name.LocalName, htmlElement.Name.LocalName))
                 {
                     _openedElements.Pop();
                     htmlParent = _openedElements.Count > 0 ? _openedElements.Peek() : null;
@@ -417,7 +406,7 @@ namespace HTMLConverter
                     // NOTE:
                     // Actually we never expect null - it would mean two top-level P or LI (without a parent).
                     // In such weird case we will loose all paragraphs except the first one...
-                    htmlParent.AppendChild(htmlElement);
+                    htmlParent.Add(htmlElement);
                 }
             }
 
@@ -427,9 +416,9 @@ namespace HTMLConverter
 
         private bool IsElementOpened(string htmlElementName)
         {
-            foreach (XmlElement openedElement in _openedElements)
+            foreach (XElement openedElement in _openedElements)
             {
-                if (openedElement.LocalName == htmlElementName)
+                if (openedElement.Name.LocalName == htmlElementName)
                 {
                     return true;
                 }
@@ -443,14 +432,14 @@ namespace HTMLConverter
             InvariantAssert(_openedElements.Count > 0, "CloseElement: Stack of opened elements cannot be empty, as we have at least one artificial root element");
 
             // Check if the element is opened and still waiting to be added to the parent
-            if (_pendingInlineElements.Count > 0 && _pendingInlineElements.Peek().LocalName == htmlElementName)
+            if (_pendingInlineElements.Count > 0 && _pendingInlineElements.Peek().Name.LocalName == htmlElementName)
             {
                 // Closing an empty inline element.
                 // Note that HtmlConverter will skip empty inlines, but for completeness we keep them here on parser level.
-                XmlElement htmlInlineElement = _pendingInlineElements.Pop();
+                XElement htmlInlineElement = _pendingInlineElements.Pop();
                 InvariantAssert(_openedElements.Count > 0, "CloseElement: Stack of opened elements cannot be empty, as we have at least one artificial root element");
-                XmlElement htmlParent = _openedElements.Peek();
-                htmlParent.AppendChild(htmlInlineElement);
+                XElement htmlParent = _openedElements.Peek();
+                htmlParent.Add(htmlInlineElement);
                 return;
             }
             else if (IsElementOpened(htmlElementName))
@@ -458,17 +447,17 @@ namespace HTMLConverter
                 while (_openedElements.Count > 1) // we never pop the last element - the artificial root
                 {
                     // Close all unbalanced elements.
-                    XmlElement htmlOpenedElement = _openedElements.Pop();
+                    XElement htmlOpenedElement = _openedElements.Pop();
 
-                    if (htmlOpenedElement.LocalName == htmlElementName)
+                    if (htmlOpenedElement.Name.LocalName == htmlElementName)
                     {
                         return;
                     }
 
-                    if (HtmlSchema.IsInlineElement(htmlOpenedElement.LocalName))
+                    if (HtmlSchema.IsInlineElement(htmlOpenedElement.Name.LocalName))
                     {
                         // Unbalances Inlines will be transfered to the next element content
-                        _pendingInlineElements.Push(CreateElementCopy(htmlOpenedElement));
+                        _pendingInlineElements.Push(new XElement(htmlOpenedElement));
                     }
                 }
             }
@@ -483,9 +472,9 @@ namespace HTMLConverter
 
             InvariantAssert(_openedElements.Count > 0, "AddTextContent: Stack of opened elements cannot be empty, as we have at least one artificial root element");
 
-            XmlElement htmlParent = _openedElements.Peek();
-            XmlText textNode = _document.CreateTextNode(textContent);
-            htmlParent.AppendChild(textNode);
+            XElement htmlParent = _openedElements.Peek();
+            XText textNode = new XText(textContent);
+            htmlParent.Add(textNode);
         }
 
         private void AddComment(string comment)
@@ -494,9 +483,9 @@ namespace HTMLConverter
 
             InvariantAssert(_openedElements.Count > 0, "AddComment: Stack of opened elements cannot be empty, as we have at least one artificial root element");
 
-            XmlElement htmlParent = _openedElements.Peek();
-            XmlComment xmlComment = _document.CreateComment(comment);
-            htmlParent.AppendChild(xmlComment);
+            XElement htmlParent = _openedElements.Peek();
+            XComment XComment = new XComment(comment);
+            htmlParent.Add(XComment);
         }
 
         // Moves all inline elements pending for opening to actual document
@@ -505,19 +494,19 @@ namespace HTMLConverter
         {
             if (_pendingInlineElements.Count > 0)
             {
-                XmlElement htmlInlineElement = _pendingInlineElements.Pop();
+                XElement htmlInlineElement = _pendingInlineElements.Pop();
 
                 OpenPendingInlineElements();
 
                 InvariantAssert(_openedElements.Count > 0, "OpenPendingInlineElements: Stack of opened elements cannot be empty, as we have at least one artificial root element");
 
-                XmlElement htmlParent = _openedElements.Peek();
-                htmlParent.AppendChild(htmlInlineElement);
+                XElement htmlParent = _openedElements.Peek();
+                htmlParent.Add(htmlInlineElement);
                 _openedElements.Push(htmlInlineElement);
             }
         }
 
-        private void ParseAttributes(XmlElement xmlElement)
+        private void ParseAttributes(XElement XElement)
         {
             while (_htmlLexicalAnalyzer.NextTokenType != HtmlTokenType.EOF && //
                 _htmlLexicalAnalyzer.NextTokenType != HtmlTokenType.TagEnd && //
@@ -532,7 +521,7 @@ namespace HTMLConverter
                     _htmlLexicalAnalyzer.GetNextAtomToken();
 
                     string attributeValue = _htmlLexicalAnalyzer.NextToken;
-                    xmlElement.SetAttribute(attributeName, attributeValue);
+                    XElement.SetAttributeValue(attributeName, attributeValue);
                 }
                 _htmlLexicalAnalyzer.GetNextTagToken();
             }
@@ -554,11 +543,11 @@ namespace HTMLConverter
         private HtmlLexicalAnalyzer _htmlLexicalAnalyzer;
 
         // document from which all elements are created
-        private XmlDocument _document;
+        private XDocument _document;
 
         // stack for open elements
-        Stack<XmlElement> _openedElements;
-        Stack<XmlElement> _pendingInlineElements;
+        Stack<XElement> _openedElements;
+        Stack<XElement> _pendingInlineElements;
 
         #endregion Private Fields
     }

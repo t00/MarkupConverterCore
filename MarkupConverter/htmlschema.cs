@@ -8,12 +8,13 @@
 //
 //---------------------------------------------------------------------------
 
-namespace HTMLConverter
-{
-    using System.Diagnostics;
-    using System.Collections;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
 
-    /// <summary>
+namespace MarkupConverter
+{
+	/// <summary>
     /// HtmlSchema class
     /// maintains static information about HTML structure
     /// can be used by HtmlParser to check conditions under which an element starts or ends, etc.
@@ -66,38 +67,38 @@ namespace HTMLConverter
         #region Internal Methods
 
         /// <summary>
-        /// returns true when xmlElementName corresponds to empty element 
+        /// returns true when XElementName corresponds to empty element 
         /// </summary>
-        /// <param name="xmlElementName">
+        /// <param name="XElementName">
         /// string representing name to test
         /// </param>
-        internal static bool IsEmptyElement(string xmlElementName)
+        internal static bool IsEmptyElement(string XElementName)
         {
             // convert to lowercase before we check
             // because element names are not case sensitive
-            return _htmlEmptyElements.Contains(xmlElementName.ToLower());
+            return _htmlEmptyElements.Contains(XElementName.ToLower());
         }
 
         /// <summary>
-        /// returns true if xmlElementName represents a block formattinng element.
+        /// returns true if XElementName represents a block formattinng element.
         /// It used in an algorithm of transferring inline elements over block elements
         /// in HtmlParser
         /// </summary>
-        /// <param name="xmlElementName"></param>
+        /// <param name="XElementName"></param>
         /// <returns></returns>
-        internal static bool IsBlockElement(string xmlElementName)
+        internal static bool IsBlockElement(string XElementName)
         {
-            return _htmlBlockElements.Contains(xmlElementName);
+            return _htmlBlockElements.Contains(XElementName);
         }
 
         /// <summary>
-        /// returns true if the xmlElementName represents an inline formatting element
+        /// returns true if the XElementName represents an inline formatting element
         /// </summary>
-        /// <param name="xmlElementName"></param>
+        /// <param name="XElementName"></param>
         /// <returns></returns>
-        internal static bool IsInlineElement(string xmlElementName)
+        internal static bool IsInlineElement(string XElementName)
         {
-            return _htmlInlineElements.Contains(xmlElementName);
+            return _htmlInlineElements.Contains(XElementName);
         }
 
         /// <summary>
@@ -108,22 +109,22 @@ namespace HTMLConverter
         /// elements during html parsing, and adding the
         /// to a tree produced by html parser.
         /// </summary>
-        internal static bool IsKnownOpenableElement(string xmlElementName)
+        internal static bool IsKnownOpenableElement(string XElementName)
         {
-            return _htmlOtherOpenableElements.Contains(xmlElementName);
+            return _htmlOtherOpenableElements.Contains(XElementName);
         }
 
         /// <summary>
-        /// returns true when xmlElementName closes when the outer element closes
+        /// returns true when XElementName closes when the outer element closes
         /// this is true of elements with optional start tags
         /// </summary>
-        /// <param name="xmlElementName">
+        /// <param name="XElementName">
         /// string representing name to test
         /// </param>
-        internal static bool ClosesOnParentElementEnd(string xmlElementName)
+        internal static bool ClosesOnParentElementEnd(string XElementName)
         {
             // convert to lowercase when testing
-            return _htmlElementsClosingOnParentElementEnd.Contains(xmlElementName.ToLower());
+            return _htmlElementsClosingOnParentElementEnd.Contains(XElementName.ToLower());
         }
 
         /// <summary>
@@ -132,7 +133,7 @@ namespace HTMLConverter
         /// <param name="currentElementName">
         /// string representing current element name
         /// </param>
-        /// <param name="elementName"></param>
+		/// <param name="nextElementName"></param>
         /// string representing name of the next element that will start
         internal static bool ClosesOnNextElementStart(string currentElementName, string nextElementName)
         {
@@ -140,15 +141,15 @@ namespace HTMLConverter
             switch (currentElementName)
             {
                 case "colgroup":
-                    return _htmlElementsClosingColgroup.Contains(nextElementName) && HtmlSchema.IsBlockElement(nextElementName);
+                    return _htmlElementsClosingColgroup.Contains(nextElementName) && IsBlockElement(nextElementName);
                 case "dd":
-                    return _htmlElementsClosingDD.Contains(nextElementName) && HtmlSchema.IsBlockElement(nextElementName);
+                    return _htmlElementsClosingDD.Contains(nextElementName) && IsBlockElement(nextElementName);
                 case "dt":
-                    return _htmlElementsClosingDT.Contains(nextElementName) && HtmlSchema.IsBlockElement(nextElementName);
+                    return _htmlElementsClosingDT.Contains(nextElementName) && IsBlockElement(nextElementName);
                 case "li":
                     return _htmlElementsClosingLI.Contains(nextElementName);
                 case "p":
-                    return HtmlSchema.IsBlockElement(nextElementName);
+                    return IsBlockElement(nextElementName);
                 case "tbody":
                     return _htmlElementsClosingTbody.Contains(nextElementName);
                 case "tfoot":
@@ -174,7 +175,7 @@ namespace HTMLConverter
         internal static bool IsEntity(string entityName)
         {
             // we do not convert entity strings to lowercase because these names are case-sensitive
-            if (_htmlCharacterEntities.Contains(entityName))
+            if (_htmlCharacterEntities.ContainsKey(entityName))
             {
                 return true;
             }
@@ -193,7 +194,7 @@ namespace HTMLConverter
         /// </param>
         internal static char EntityCharacterValue(string entityName)
         {
-            if (_htmlCharacterEntities.Contains(entityName))
+            if (_htmlCharacterEntities.ContainsKey(entityName))
             {
                 return (char) _htmlCharacterEntities[entityName];
             }
@@ -452,11 +453,11 @@ namespace HTMLConverter
         }
 
         /// <summary>
-        /// initializes _htmlCharacterEntities hashtable with the character corresponding to entity names
+        /// initializes _htmlCharacterEntities IDictionary<object, object> with the character corresponding to entity names
         /// </summary>
         private static void InitializeHtmlCharacterEntities()
         {
-            _htmlCharacterEntities = new Hashtable();
+            _htmlCharacterEntities = new Dictionary<object, object>();
             _htmlCharacterEntities["Aacute"] = (char)193;
             _htmlCharacterEntities["aacute"] = (char)225;
             _htmlCharacterEntities["Acirc"] = (char)194;
@@ -718,7 +719,7 @@ namespace HTMLConverter
         #region Private Fields
 
         // html element names
-        // this is an array list now, but we may want to make it a hashtable later for better performance
+        // this is an array list now, but we may want to make it a IDictionary<object, object> later for better performance
         private static ArrayList _htmlInlineElements;
 
         private static ArrayList _htmlBlockElements;
@@ -763,8 +764,8 @@ namespace HTMLConverter
         // names of elements closing the tr element
         private static ArrayList _htmlElementsClosingTR;
 
-        // html character entities hashtable
-        private static Hashtable _htmlCharacterEntities;
+        // html character entities IDictionary<object, object>
+        private static IDictionary<object, object> _htmlCharacterEntities;
 
         #endregion Private Fields
     }

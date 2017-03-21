@@ -9,12 +9,11 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.IO;
 using System.Diagnostics;
-using System.Collections;
+using System.IO;
 using System.Text;
 
-namespace HTMLConverter
+namespace MarkupConverter
 {
     /// <summary>
     /// lexical analyzer class
@@ -50,7 +49,7 @@ namespace HTMLConverter
             _nextToken = new StringBuilder(100);
             _nextTokenType = HtmlTokenType.Text;
             // read the first character so we have some value for the NextCharacter property
-            this.GetNextCharacter();
+            GetNextCharacter();
         }
 
         #endregion Constructors
@@ -152,7 +151,7 @@ namespace HTMLConverter
                             _nextToken.Append(this.NextCharacter);
                             _ignoreNextWhitespace = false;
                         }
-                        this.GetNextCharacter();
+                        GetNextCharacter();
                     }
                 }
             }
