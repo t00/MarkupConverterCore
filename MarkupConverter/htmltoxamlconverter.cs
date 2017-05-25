@@ -82,7 +82,7 @@ namespace MarkupConverter
             }
 
             // Return a string representing resulting Xaml
-            xamlFlowDocumentElement.SetAttributeValue(XName.Get("space", "xml"), "preserve");
+            //xamlFlowDocumentElement.SetAttributeValue(XName.Get("space", "xml"), "preserve");
             string xaml = xamlTree.ToString();
             return xaml;
         }
