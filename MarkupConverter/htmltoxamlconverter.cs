@@ -42,21 +42,24 @@ namespace MarkupConverter
         /// <param name="htmlString">
         /// Input html which may be badly formated xml.
         /// </param>
-        /// <param name="asFlowDocument">
-        /// true indicates that we need a FlowDocument as a root element;
-        /// false means that Section or Span elements will be used
-        /// dependeing on StartFragment/EndFragment comments locations.
+        /// <param name="options">
+        /// Conversion options
         /// </param>
         /// <returns>
         /// Well-formed xml representing XAML equivalent for the input html string.
         /// </returns>
-        public static string ConvertHtmlToXaml(string htmlString, bool asFlowDocument)
+        public static string ConvertHtmlToXaml(string htmlString, HtmlToXamlDocumentOptions options = null)
         {
+            if(options == null)
+            {
+                options = new HtmlToXamlDocumentOptions();
+            }
+
             // Create well-formed Xml from Html string
             XElement htmlElement = HtmlParser.ParseHtml(htmlString);
 
             // Decide what name to use as a root
-            string rootElementName = asFlowDocument ? Xaml_FlowDocument : Xaml_Section;
+            string rootElementName = options.IsRootSection ? Xaml_Section : Xaml_FlowDocument;
 
             // Create an XDocument for generated xaml
             var xamlTree = new XDocument();
@@ -76,7 +79,7 @@ namespace MarkupConverter
             AddBlock(xamlFlowDocumentElement, htmlElement, new Dictionary<object, object>(), stylesheet, sourceContext);
 
             // In case if the selected fragment is inline, extract it into a separate Span wrapper
-            if (!asFlowDocument)
+            if (options.IsRootSection)
             {
                 xamlFlowDocumentElement = ExtractInlineFragment(xamlFlowDocumentElement);
             }
