@@ -46,9 +46,28 @@ namespace MarkupConverter
         /// Conversion options
         /// </param>
         /// <returns>
-        /// Well-formed xml representing XAML equivalent for the input html string.
+        /// xml document representing XAML equivalent for the input html string.
         /// </returns>
         public static string ConvertHtmlToXaml(string htmlString, HtmlToXamlDocumentOptions options = null)
+        {
+            var xamlTree = ConvertHtmlToXamlDocument(htmlString, options);
+            string xaml = xamlTree.ToString();
+            return xaml;
+        }
+
+        /// <summary>
+        /// Converts an html string into xaml string.
+        /// </summary>
+        /// <param name="htmlString">
+        /// Input html which may be badly formated xml.
+        /// </param>
+        /// <param name="options">
+        /// Conversion options
+        /// </param>
+        /// <returns>
+        /// Well-formed xml representing XAML equivalent for the input html string.
+        /// </returns>
+        public static XDocument ConvertHtmlToXamlDocument(string htmlString, HtmlToXamlDocumentOptions options = null)
         {
             if(options == null)
             {
@@ -84,10 +103,7 @@ namespace MarkupConverter
                 xamlFlowDocumentElement = ExtractInlineFragment(xamlFlowDocumentElement);
             }
 
-            // Return a string representing resulting Xaml
-            //xamlFlowDocumentElement.SetAttributeValue(XName.Get("space", "xml"), "preserve");
-            string xaml = xamlTree.ToString();
-            return xaml;
+            return xamlTree;
         }
 
         /// <summary>
