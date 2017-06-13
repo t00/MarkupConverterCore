@@ -27,7 +27,7 @@ namespace MarkupConverter
             tables?.Clear();
         }
 
-        internal List<HtmlFromXamlTableInfo> Tables => tables ?? (tables = new List<HtmlFromXamlTableInfo>());
+        internal IList<HtmlFromXamlTableInfo> Tables => tables ?? (tables = new List<HtmlFromXamlTableInfo>());
 
         internal HtmlFromXamlTableInfo AddTable()
         {
@@ -45,7 +45,7 @@ namespace MarkupConverter
             return CurrentTable;
         }
 
-        private List<HtmlFromXamlTableInfo> tables;
+        private IList<HtmlFromXamlTableInfo> tables;
         private int tableIndex;
     }
 }

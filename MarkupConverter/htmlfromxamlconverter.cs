@@ -9,6 +9,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -145,13 +146,8 @@ namespace MarkupConverter
 			{
 				htmlWriter.WriteStartElement(options.OuterElement);
 			}
-			htmlWriter.WriteStartElement(options.InnerElement);
 
-			WriteFormattingProperties(xamlReader, htmlWriter, inlineStyle, options);
-
-			WriteElementContent(xamlReader, htmlWriter, inlineStyle, options);
-
-			htmlWriter.WriteEndElement();
+            WriteElementWithContent(xamlReader, htmlWriter, options.InnerElement, inlineStyle, options);
 
 			if(options.OuterElement != string.Empty)
 			{
@@ -178,7 +174,7 @@ namespace MarkupConverter
 		/// String builder for collecting css properties for inline STYLE attribute.
 		/// </param>
 		/// <param name="options">Element level options</param>
-		private static void WriteFormattingProperties(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlDocumentOptions options)
+		private static void WriteFormattingProperties(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, IList<string> subElements, HtmlFromXamlDocumentOptions options)
 		{
 			Debug.Assert(xamlReader.NodeType == XmlNodeType.Element);
 
@@ -190,6 +186,8 @@ namespace MarkupConverter
 			bool borderSet = false;
 			bool borderColorSet = false;
 
+            string fontSizeStyle = null;
+            var fontSizeIgnore = false;
 			if(xamlReader.HasAttributes)
 			{
 				while(xamlReader.MoveToNextAttribute())
@@ -218,11 +216,11 @@ namespace MarkupConverter
 							double size;
 							if(double.TryParse(xamlReader.Value, out size))
 							{
-								css = "font-size:" + Math.Round(size, 1, MidpointRounding.AwayFromZero).ToString(CultureInfo.InvariantCulture) + "px;";
+                                fontSizeStyle = "font-size:" + Math.Round(size, 1, MidpointRounding.AwayFromZero).ToString(CultureInfo.InvariantCulture) + "px;";
 							}
 							else
 							{
-								css = "font-size:" + xamlReader.Value + "px;";
+                                fontSizeStyle = "font-size:" + xamlReader.Value + "px;";
 							}
 							break;
 						case "Foreground":
@@ -246,13 +244,15 @@ namespace MarkupConverter
 						case "BaselineAlignment":
 							if(xamlReader.Value == "Subscript")
 							{
-								css = "vertical-align:sub;";
-							}
+                                subElements.Add("sub");
+                                fontSizeIgnore = true;
+                            }
 							else if(xamlReader.Value == "Superscript")
 							{
-								css = "vertical-align:super;";
-							}
-							break;
+                                subElements.Add("sup");
+                                fontSizeIgnore = true;
+                            }
+                            break;
 
 						// Paragraph formatting properties
 						// -------------------------------
@@ -312,6 +312,10 @@ namespace MarkupConverter
 						inlineStyle.Append(css);
 					}
 				}
+                if(!fontSizeIgnore && fontSizeStyle != null)
+                {
+                    inlineStyle.Append(fontSizeStyle);
+                }
 			}
 
 			if(elementName == "Table")
@@ -645,16 +649,10 @@ namespace MarkupConverter
 				}
 
 				if(htmlWriter != null && htmlElementName != null)
-				{
-					htmlWriter.WriteStartElement(htmlElementName);
-
-					WriteFormattingProperties(xamlReader, htmlWriter, inlineStyle, options);
-
-					WriteElementContent(xamlReader, htmlWriter, inlineStyle, options);
-
-					htmlWriter.WriteEndElement();
-				}
-				else
+                {
+                    WriteElementWithContent(xamlReader, htmlWriter, htmlElementName, inlineStyle, options);
+                }
+                else
 				{
 					// Skip this unrecognized xaml element
 					WriteElementContent(xamlReader, /*htmlWriter:*/null, null, options);
@@ -662,19 +660,42 @@ namespace MarkupConverter
 			}
 		}
 
-		// Reader advance helpers
-		// ----------------------
+        private static void WriteElementWithContent(XmlReader xamlReader, XmlWriter htmlWriter, string htmlElementName, StringBuilder inlineStyle, HtmlFromXamlDocumentOptions options)
+        {
+            htmlWriter.WriteStartElement(htmlElementName);
 
-		/// <summary>
-		/// Reads several items from xamlReader skipping all non-significant stuff.
-		/// </summary>
-		/// <param name="xamlReader">
-		/// XTextReader from tokens are being read.
-		/// </param>
-		/// <returns>
-		/// True if new token is available; false if end of stream reached.
-		/// </returns>
-		public static bool ReadNextToken(XmlReader xamlReader)
+            var subElements = new List<string>();
+
+            WriteFormattingProperties(xamlReader, htmlWriter, inlineStyle, subElements, options);
+
+            foreach (var element in subElements)
+            {
+                htmlWriter.WriteStartElement(element);
+            }
+
+            WriteElementContent(xamlReader, htmlWriter, inlineStyle, options);
+
+            foreach (var element in subElements)
+            {
+                htmlWriter.WriteEndElement();
+            }
+
+            htmlWriter.WriteEndElement();
+        }
+
+        // Reader advance helpers
+        // ----------------------
+
+        /// <summary>
+        /// Reads several items from xamlReader skipping all non-significant stuff.
+        /// </summary>
+        /// <param name="xamlReader">
+        /// XTextReader from tokens are being read.
+        /// </param>
+        /// <returns>
+        /// True if new token is available; false if end of stream reached.
+        /// </returns>
+        public static bool ReadNextToken(XmlReader xamlReader)
 		{
 			while(xamlReader.Read())
 			{

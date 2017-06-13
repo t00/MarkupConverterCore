@@ -1,4 +1,7 @@
-﻿namespace MarkupConverter
+﻿using System.Collections.Generic;
+using System.Xml.Linq;
+
+namespace MarkupConverter
 {
     public class HtmlToXamlDocumentOptions
     {
@@ -8,5 +11,11 @@
         /// dependeing on StartFragment/EndFragment comments locations.
         /// </summary>
         public bool IsRootSection { get; set; }
+
+        internal CssStylesheet Stylesheet { get; set; }
+
+        internal IList<XElement> SourceContext { get; set; }
+
+        internal IList<XElement> DestinationContext { get; set; }
     }
 }
