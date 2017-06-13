@@ -2011,10 +2011,10 @@ namespace MarkupConverter
             string borderThicknessLeft = "0";
             string borderThicknessRight = "0";
 
-            var property = localProperties.GetEnumerator();
-            while (property.MoveNext())
+            XElement textDecorationsElement = new XElement(XName.Get($"{xamlElement.Name.LocalName}.{Xaml_TextDecorations}", _xamlNamespace));
+
+            foreach (var propertyEnumerator in localProperties)
             {
-                var propertyEnumerator = property.Current;
                 switch ((string)propertyEnumerator.Key)
                 {
                     case "font-family":
@@ -2043,19 +2043,24 @@ namespace MarkupConverter
                     case "text-decoration-underline":
                         if (!isBlock)
                         {
-                            if ((string)propertyEnumerator.Value == "true")
-                            {
-                                xamlElement.SetAttributeValue(Xaml_TextDecorations, Xaml_TextDecorations_Underline);
-                            }
+                            SetTextDecoration(textDecorationsElement, propertyEnumerator.Value, Xaml_TextDecorations_Underline);
+                        }
+                        break;
+                    case "text-decoration-line-through":
+                        if (!isBlock)
+                        {
+                            SetTextDecoration(textDecorationsElement, propertyEnumerator.Value, Xaml_TextDecorations_Strikethrough);
                         }
                         break;
                     case "text-decoration-none":
                     case "text-decoration-overline":
-                    case "text-decoration-line-through":
                     case "text-decoration-blink":
-                        //  Convert from all other text-decorations values
+                        // not supported decorations
+                        break;
+                    case "baseline-alignment":
                         if (!isBlock)
                         {
+                            xamlElement.SetAttributeValue(Xaml_BaselineAlignment, propertyEnumerator.Value);
                         }
                         break;
                     case "text-transform":
@@ -2232,6 +2237,21 @@ namespace MarkupConverter
                     ComposeThicknessProperty(xamlElement, Xaml_BorderThickness, borderThicknessLeft, borderThicknessRight, borderThicknessTop, borderThicknessBottom);
                 }
             }
+
+            if(textDecorationsElement.HasElements)
+            {
+                xamlElement.Add(textDecorationsElement);
+            }
+        }
+
+        private static void SetTextDecoration(XElement xamlElement, object propertyValue, string textDecoration)
+        {
+            if ("true".Equals(propertyValue))
+            {
+                var decorationElement = new XElement(XName.Get(Xaml_TextDecoration, _xamlNamespace));
+                decorationElement.SetAttributeValue(Xaml_TextDecoration_Location, textDecoration);
+                xamlElement.Add(decorationElement);
+            }
         }
 
         // Create syntactically optimized four-value Thickness
@@ -2365,8 +2385,10 @@ namespace MarkupConverter
                     localProperties["text-align"] = "Left";
                     break;
                 case "sub":
+                    localProperties["baseline-alignment"] = "Subscript";
                     break;
                 case "sup":
+                    localProperties["baseline-alignment"] = "Superscript";
                     break;
 
                 // Hyperlinks
@@ -2648,9 +2670,14 @@ namespace MarkupConverter
         public const string Xaml_Background = "Background";
         public const string Xaml_TextDecorations = "TextDecorations";
         public const string Xaml_TextDecorations_Underline = "Underline";
+        public const string Xaml_TextDecorations_Strikethrough = "Strikethrough";
+        public const string Xaml_TextDecoration = "TextDecoration";
+        public const string Xaml_TextDecoration_Location = "Location";
 
         public const string Xaml_TextIndent = "TextIndent";
         public const string Xaml_TextAlignment = "TextAlignment";
+        public const string Xaml_BaselineAlignment = "BaselineAlignment";
+
 
         // ---------------------------------------------------------------------
         //
