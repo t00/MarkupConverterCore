@@ -263,7 +263,7 @@ namespace MarkupConverter
 
             int startIndex = nextIndex;
 
-            // Parse optional munis sign
+            // Parse optional minus sign
             if (nextIndex < styleValue.Length && styleValue[nextIndex] == '-')
             {
                 nextIndex++;
@@ -293,7 +293,7 @@ namespace MarkupConverter
                     double val;
                     if (HtmlToXamlConverter.TryGetLengthValue(number + unit, out val))
                     {
-                        return val.ToString("0.#");
+                        return val.ToString();
                     }
                     else
                     {

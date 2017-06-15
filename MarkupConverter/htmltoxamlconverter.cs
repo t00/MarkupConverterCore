@@ -521,7 +521,7 @@ namespace MarkupConverter
             // Add the Paragraph to the parent
             // If only whitespaces and commens have been encountered,
             // then we have nothing to add in implicit paragraph; forget it.
-            if (xamlParagraph.HasElements)
+            if (xamlParagraph.DescendantNodes().Any())
             {
                 xamlParentElement.Add(xamlParagraph);
             }
@@ -2044,6 +2044,11 @@ namespace MarkupConverter
             var adjustFontSize = false;
             foreach (var propertyEnumerator in localProperties)
             {
+                // skip inherited properties
+                if ("inherit".Equals(propertyEnumerator.Value))
+                {
+                    continue;
+                }
                 switch ((string)propertyEnumerator.Key)
                 {
                     case "font-family":
@@ -2406,17 +2411,10 @@ namespace MarkupConverter
                     attributeValue = GetAttribute(htmlElement, "size");
                     if (attributeValue != null)
                     {
-                        double fontSize = double.Parse(attributeValue) * (12.0 / 3.0);
-                        if (fontSize < 1.0)
+                        if(TryGetLengthValue(attributeValue, out double fontSize))
                         {
-                            fontSize = 1.0;
+                            localProperties["font-size"] = fontSize.ToString(CultureInfo.InvariantCulture);
                         }
-                        else if (fontSize > 1000.0)
-                        {
-                            fontSize = 1000.0;
-                        }
-	                    fontSize = Math.Round(fontSize, 1, MidpointRounding.AwayFromZero);
-                        localProperties["font-size"] = fontSize.ToString(CultureInfo.InvariantCulture);
                     }
                     attributeValue = GetAttribute(htmlElement, "color");
                     if (attributeValue != null)
@@ -2569,6 +2567,7 @@ namespace MarkupConverter
                     lengthAsString = lengthAsString.Substring(0, lengthAsString.Length - 2);
                     if (Double.TryParse(lengthAsString, out length))
                     {
+                        length = Math.Round(length, 1, MidpointRounding.AwayFromZero);
                         length = (length * 96.0) / 72.0; // convert from points to pixels
                     }
                     else
@@ -2579,14 +2578,22 @@ namespace MarkupConverter
                 else if (lengthAsString.EndsWith("px"))
                 {
                     lengthAsString = lengthAsString.Substring(0, lengthAsString.Length - 2);
-                    if (!Double.TryParse(lengthAsString, out length))
+                    if (double.TryParse(lengthAsString, out length))
+                    {
+                        length = RoundPixelsToPoints(length);
+                    }
+                    else
                     {
                         length = Double.NaN;
                     }
                 }
                 else
                 {
-                    if (!Double.TryParse(lengthAsString, out length)) // Assuming pixels
+                    if (double.TryParse(lengthAsString, out length)) // Assuming pixels
+                    {
+                        length = RoundPixelsToPoints(length);
+                    }
+                    else
                     {
                         length = Double.NaN;
                     }
@@ -2594,6 +2601,14 @@ namespace MarkupConverter
             }
 
             return !Double.IsNaN(length);
+        }
+
+        private static double RoundPixelsToPoints(double length)
+        {
+            length = (length * 72.0) / 96.0; // convert from pixels to points
+            length = Math.Round(length, 1, MidpointRounding.AwayFromZero);
+            length = (length * 96.0) / 72.0; // convert from points to pixels
+            return length;
         }
 
         // .................................................................
