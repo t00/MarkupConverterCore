@@ -2411,7 +2411,8 @@ namespace MarkupConverter
                     attributeValue = GetAttribute(htmlElement, "size");
                     if (attributeValue != null)
                     {
-                        if(TryGetLengthValue(attributeValue, out double fontSize))
+                        double fontSize;
+                        if (TryGetLengthValue(attributeValue, out fontSize))
                         {
                             localProperties["font-size"] = fontSize.ToString(CultureInfo.InvariantCulture);
                         }
