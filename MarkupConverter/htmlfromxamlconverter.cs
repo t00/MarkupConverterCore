@@ -43,18 +43,11 @@ namespace MarkupConverter
 		/// </returns>
 		public static string ConvertXamlToHtml(string xamlString, HtmlFromXamlDocumentOptions options = null)
 		{
-			if(options == null)
-			{
-				options = new HtmlFromXamlDocumentOptions();
-			}
-			else
-			{
-				options.Reset();
-			}
+            var context = new HtmlFromXamlContext(options ?? new HtmlFromXamlDocumentOptions());
 
 			using(var xamlReader = XmlReader.Create(new StringReader(xamlString), new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore, IgnoreWhitespace = true }))
 			{
-				Preprocess(xamlReader, options);
+				Preprocess(xamlReader, context);
 			}
 
 			using(var xamlReader = XmlReader.Create(new StringReader(xamlString), new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore, IgnoreWhitespace = true }))
@@ -64,7 +57,7 @@ namespace MarkupConverter
                 {
                     using (var htmlWriter = XmlWriter.Create(sw, new XmlWriterSettings { OmitXmlDeclaration = true }))
                     {
-                        if (!WriteFlowDocument(xamlReader, htmlWriter, options))
+                        if (!WriteFlowDocument(xamlReader, htmlWriter, context))
                         {
                             return string.Empty;
                         }
@@ -82,7 +75,7 @@ namespace MarkupConverter
 
 		#region Private Methods
 
-		private static void Preprocess(XmlReader xamlReader, HtmlFromXamlDocumentOptions options)
+		private static void Preprocess(XmlReader xamlReader, HtmlFromXamlContext context)
 		{
 			if(!xamlReader.IsEmptyElement)
 			{
@@ -92,7 +85,7 @@ namespace MarkupConverter
 					{
 						if(xamlReader.Name == "Table")
 						{
-							options.AddTable();
+							context.AddTable();
 						}
 						else if(xamlReader.Name == "TableCell")
 						{
@@ -100,13 +93,13 @@ namespace MarkupConverter
 							{
 								if(xamlReader.Name == "BorderThickness")
 								{
-									options.CurrentTable.AddBorder(GetThickness(xamlReader.Value));
+                                    context.CurrentTable.AddBorder(GetThickness(xamlReader.Value));
 								}
 							}
 							xamlReader.MoveToElement();
 						}
 
-						Preprocess(xamlReader, options);
+						Preprocess(xamlReader, context);
 					}
 				}
 
@@ -124,7 +117,7 @@ namespace MarkupConverter
 		/// TextWriter producing resulting html
 		/// </param>
 		/// <param name="options">Options from preprocessor</param>
-		private static bool WriteFlowDocument(XmlReader xamlReader, XmlWriter htmlWriter, HtmlFromXamlDocumentOptions options)
+		private static bool WriteFlowDocument(XmlReader xamlReader, XmlWriter htmlWriter, HtmlFromXamlContext context)
 		{
 			if(!ReadNextToken(xamlReader))
 			{
@@ -142,14 +135,14 @@ namespace MarkupConverter
 			// on every element level (it will be re-initialized on every level).
 			var inlineStyle = new StringBuilder();
 
-			if(options.OuterElement != string.Empty)
+			if(context.Options.OuterElement != string.Empty)
 			{
-				htmlWriter.WriteStartElement(options.OuterElement);
+				htmlWriter.WriteStartElement(context.Options.OuterElement);
 			}
 
-            WriteElementWithContent(xamlReader, htmlWriter, options.InnerElement, inlineStyle, options);
+            WriteElementWithContent(xamlReader, htmlWriter, context.Options.InnerElement, inlineStyle, context);
 
-			if(options.OuterElement != string.Empty)
+			if(context.Options.OuterElement != string.Empty)
 			{
 				htmlWriter.WriteEndElement();
 			}
@@ -157,24 +150,25 @@ namespace MarkupConverter
 			return true;
 		}
 
-		/// <summary>
-		/// Reads attributes of the current xaml element and converts
-		/// them into appropriate html attributes or css styles.
-		/// </summary>
-		/// <param name="xamlReader">
-		/// XTextReader which is expected to be at XmlNodeType.Element
-		/// (opening element tag) position.
-		/// The reader will remain at the same level after function complete.
-		/// </param>
-		/// <param name="htmlWriter">
-		/// TextWriter for output html, which is expected to be in
-		/// after WriteStartElement state.
-		/// </param>
-		/// <param name="inlineStyle">
-		/// String builder for collecting css properties for inline STYLE attribute.
-		/// </param>
-		/// <param name="options">Element level options</param>
-		private static void WriteFormattingProperties(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, IList<string> subElements, HtmlFromXamlDocumentOptions options)
+	    /// <summary>
+	    /// Reads attributes of the current xaml element and converts
+	    /// them into appropriate html attributes or css styles.
+	    /// </summary>
+	    /// <param name="xamlReader">
+	    /// XTextReader which is expected to be at XmlNodeType.Element
+	    /// (opening element tag) position.
+	    /// The reader will remain at the same level after function complete.
+	    /// </param>
+	    /// <param name="htmlWriter">
+	    /// TextWriter for output html, which is expected to be in
+	    /// after WriteStartElement state.
+	    /// </param>
+	    /// <param name="inlineStyle">
+	    /// String builder for collecting css properties for inline STYLE attribute.
+	    /// </param>
+	    /// <param name="subElements"></param>
+	    /// <param name="options">Element level options</param>
+	    private static void WriteFormattingProperties(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, IList<string> subElements, HtmlFromXamlContext context)
 		{
 			Debug.Assert(xamlReader.NodeType == XmlNodeType.Element);
 
@@ -303,7 +297,7 @@ namespace MarkupConverter
 							htmlWriter.WriteAttributeString("ROWSPAN", xamlReader.Value);
 							break;
                         default:
-                            options.OnWriteCustomProperty?.Invoke(xamlReader, htmlWriter, inlineStyle, options);
+                            context.Options.OnWriteCustomProperty?.Invoke(xamlReader, htmlWriter, inlineStyle, context.Options);
                             break;
 					}
 
@@ -321,9 +315,9 @@ namespace MarkupConverter
 			if(elementName == "Table")
 			{
 				inlineStyle.Append("border-collapse:collapse;");
-				if(!borderSet && options.CurrentTable != null)
+				if(!borderSet && context.CurrentTable != null)
 				{
-					var t = options.CurrentTable.CommonBorder;
+					var t = context.CurrentTable.CommonBorder;
 					var thickness = PrintThickness(new HtmlThickness(0, t.Top, t.Right, 0));
 					inlineStyle.Append($"border-width:{thickness};");
 					borderSet = true;
@@ -418,7 +412,7 @@ namespace MarkupConverter
 		/// StringBuilder used for collecting css properties for inline STYLE attribute.
 		/// </param>
 		/// <param name="options">Element level option</param>
-		private static void WriteElementContent(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlDocumentOptions options)
+		private static void WriteElementContent(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlContext context)
 		{
 			Debug.Assert(xamlReader.NodeType == XmlNodeType.Element);
 
@@ -441,7 +435,7 @@ namespace MarkupConverter
 					switch(xamlReader.NodeType)
 					{
 						case XmlNodeType.Element:
-							if(!HandleComplexProperty(xamlReader, htmlWriter, inlineStyle, options))
+							if(!HandleComplexProperty(xamlReader, htmlWriter, inlineStyle, context))
 							{
 								if(htmlWriter != null && !elementContentStarted && inlineStyle.Length > 0)
 								{
@@ -450,7 +444,7 @@ namespace MarkupConverter
 									inlineStyle.Remove(0, inlineStyle.Length);
 								}
 								elementContentStarted = true;
-								WriteElement(xamlReader, htmlWriter, inlineStyle, options);
+								WriteElement(xamlReader, htmlWriter, inlineStyle, context);
 							}
 							Debug.Assert(xamlReader.NodeType == XmlNodeType.EndElement || xamlReader.NodeType == XmlNodeType.Element && xamlReader.IsEmptyElement);
 							break;
@@ -500,7 +494,7 @@ namespace MarkupConverter
 		/// StringBuilder containing a value for STYLE attribute.
 		/// </param>
 		/// <param name="options">Element level options</param>
-		private static bool HandleComplexProperty(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlDocumentOptions options)
+		private static bool HandleComplexProperty(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlContext context)
 		{
 			Debug.Assert(xamlReader.NodeType == XmlNodeType.Element);
 
@@ -545,7 +539,7 @@ namespace MarkupConverter
 			else
 			{
 				// Skip the element representing the complex property
-				WriteElementContent(xamlReader, /*htmlWriter:*/null, /*inlineStyle:*/null, options);
+				WriteElementContent(xamlReader, /*htmlWriter:*/null, /*inlineStyle:*/null, context);
 			}
 			return true;
 		}
@@ -565,14 +559,14 @@ namespace MarkupConverter
 		/// StringBuilder used for collecting css properties for inline STYLE attributes on every level.
 		/// </param>
 		/// <param name="options">Options from preprocessor</param>
-		private static void WriteElement(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlDocumentOptions options)
+		private static void WriteElement(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlContext context)
 		{
 			Debug.Assert(xamlReader.NodeType == XmlNodeType.Element);
 
 			if(htmlWriter == null)
 			{
 				// Skipping mode; recurse into the xaml element without any output
-				WriteElementContent(xamlReader, /*htmlWriter:*/null, null, options);
+				WriteElementContent(xamlReader, /*htmlWriter:*/null, null, context);
 			}
 			else
 			{
@@ -604,7 +598,7 @@ namespace MarkupConverter
 						break;
 					case "Table":
 						htmlElementName = "table";
-						options.TableMove();
+						context.TableMove();
 						break;
 					case "Table.Columns":
 						htmlElementName = "colgroup";
@@ -636,10 +630,10 @@ namespace MarkupConverter
 						htmlElementName = "li";
 						break;
 					default:
-                        if (options.OnGetHtmlElementName != null)
+                        if (context.Options.OnGetHtmlElementName != null)
                         {
                             // Custom handling of the element
-                            htmlElementName = options.OnGetHtmlElementName(xamlReader.LocalName);
+                            htmlElementName = context.Options.OnGetHtmlElementName(xamlReader.LocalName);
                         }
                         else
                         {
@@ -650,30 +644,30 @@ namespace MarkupConverter
 
 				if(htmlWriter != null && htmlElementName != null)
                 {
-                    WriteElementWithContent(xamlReader, htmlWriter, htmlElementName, inlineStyle, options);
+                    WriteElementWithContent(xamlReader, htmlWriter, htmlElementName, inlineStyle, context);
                 }
                 else
 				{
 					// Skip this unrecognized xaml element
-					WriteElementContent(xamlReader, /*htmlWriter:*/null, null, options);
+					WriteElementContent(xamlReader, /*htmlWriter:*/null, null, context);
 				}
 			}
 		}
 
-        private static void WriteElementWithContent(XmlReader xamlReader, XmlWriter htmlWriter, string htmlElementName, StringBuilder inlineStyle, HtmlFromXamlDocumentOptions options)
+        private static void WriteElementWithContent(XmlReader xamlReader, XmlWriter htmlWriter, string htmlElementName, StringBuilder inlineStyle, HtmlFromXamlContext context)
         {
             htmlWriter.WriteStartElement(htmlElementName);
 
             var subElements = new List<string>();
 
-            WriteFormattingProperties(xamlReader, htmlWriter, inlineStyle, subElements, options);
+            WriteFormattingProperties(xamlReader, htmlWriter, inlineStyle, subElements, context);
 
             foreach (var element in subElements)
             {
                 htmlWriter.WriteStartElement(element);
             }
 
-            WriteElementContent(xamlReader, htmlWriter, inlineStyle, options);
+            WriteElementContent(xamlReader, htmlWriter, inlineStyle, context);
 
             foreach (var element in subElements)
             {

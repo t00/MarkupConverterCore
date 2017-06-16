@@ -28,9 +28,9 @@ namespace MarkupConverter
         //
         // .................................................................
 
-        internal static void GetElementPropertiesFromCssAttributes(XElement htmlElement, string elementName, IDictionary<object, object> localProperties, HtmlToXamlDocumentOptions options)
+        internal static void GetElementPropertiesFromCssAttributes(XElement htmlElement, string elementName, IDictionary<object, object> localProperties, HtmlToXamlContext context)
         {
-            string styleFromStylesheet = options.Stylesheet.GetStyle(elementName, options.SourceContext);
+            string styleFromStylesheet = context.Stylesheet.GetStyle(elementName, context.SourceContext);
 
             string styleInline = HtmlToXamlConverter.GetAttribute(htmlElement, "style");
 

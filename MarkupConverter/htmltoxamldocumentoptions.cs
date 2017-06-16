@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Xml.Linq;
 
 namespace MarkupConverter
@@ -12,10 +13,6 @@ namespace MarkupConverter
         /// </summary>
         public bool IsRootSection { get; set; }
 
-        internal CssStylesheet Stylesheet { get; set; }
-
-        internal IList<XElement> SourceContext { get; set; }
-
-        internal IList<XElement> DestinationContext { get; set; }
+        public Action<HtmlXamlImage, XElement> OnProcessImage { get; set; }
     }
 }

@@ -3,7 +3,7 @@ using System.IO;
 
 namespace MarkupConverter
 {
-    public class HtmlFromXamlImage
+    public class HtmlXamlImage
     {
         public int Index { get; set; }
 
