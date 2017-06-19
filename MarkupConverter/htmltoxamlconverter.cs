@@ -42,16 +42,16 @@ namespace MarkupConverter
         /// <param name="htmlString">
         /// Input html which may be badly formated xml.
         /// </param>
-        /// <param name="options">
-        /// Conversion options
+        /// <param name="context">
+        /// Conversion context
         /// </param>
         /// <returns>
         /// xml document representing XAML equivalent for the input html string.
         /// </returns>
-        public static string ConvertHtmlToXaml(string htmlString, HtmlToXamlDocumentOptions options = null)
+        public static string ConvertHtmlToXaml(string htmlString, HtmlToXamlContext context)
         {
-            var xamlTree = ConvertHtmlToXamlDocument(htmlString, options);
-            string xaml = xamlTree.ToString();
+            var xamlTree = ConvertHtmlToXamlDocument(htmlString, context);
+            var xaml = xamlTree.ToString();
             return xaml;
         }
 
@@ -61,16 +61,14 @@ namespace MarkupConverter
         /// <param name="htmlString">
         /// Input html which may be badly formated xml.
         /// </param>
-        /// <param name="options">
-        /// Conversion options
+        /// <param name="context">
+        /// Conversion context
         /// </param>
         /// <returns>
         /// Well-formed xml representing XAML equivalent for the input html string.
         /// </returns>
-        public static XDocument ConvertHtmlToXamlDocument(string htmlString, HtmlToXamlDocumentOptions options = null)
+        public static XDocument ConvertHtmlToXamlDocument(string htmlString, HtmlToXamlContext context)
         {
-            var context = new HtmlToXamlContext(options ?? new HtmlToXamlDocumentOptions());
-
             // Create well-formed Xml from Html string
             XElement htmlElement = HtmlParser.ParseHtml(htmlString);
 
@@ -188,14 +186,13 @@ namespace MarkupConverter
         /// <param name="xamlParentElement">
         /// Parent xaml element, to which new converted element will be added
         /// </param>
-        /// <param name="htmlElement">
+        /// <param name="htmlNode">
         /// Source html element subject to convert to xaml.
         /// </param>
         /// <param name="inheritedProperties">
         /// Properties inherited from an outer context.
         /// </param>
-        /// <param name="stylesheet"></param>
-        /// <param name="sourceContext"></param>
+        /// <param name="context">Conversion context</param>
         /// <returns>
         /// Last processed html node. Normally it should be the same htmlElement
         /// as was passed as a paramater, but in some irregular cases
@@ -368,10 +365,7 @@ namespace MarkupConverter
         /// <param name="inheritedProperties">
         /// properties inherited from parent context
         /// </param>
-        /// <param name="stylesheet"></param>
-        /// <param name="sourceContext"></param>
-        /// true indicates that a content added by this call contains at least one block element
-        /// </param>
+        /// <param name="context">Conversion context</param>
         private static void AddSection(XElement xamlParentElement, XElement htmlElement, IDictionary<object, object> inheritedProperties, HtmlToXamlContext context)
         {
             // Analyze the content of htmlElement to decide what xaml element to choose - Section or Paragraph.
@@ -445,10 +439,7 @@ namespace MarkupConverter
         /// <param name="inheritedProperties">
         /// properties inherited from parent context
         /// </param>
-        /// <param name="stylesheet"></param>
-        /// <param name="sourceContext"></param>
-        /// true indicates that a content added by this call contains at least one block element
-        /// </param>
+        /// <param name="context">Conversion context</param>
         private static void AddParagraph(XElement xamlParentElement, XElement htmlElement, IDictionary<object, object> inheritedProperties, HtmlToXamlContext context)
         {
             // Create currentProperties as a compilation of local and inheritedProperties, set localProperties
@@ -484,10 +475,7 @@ namespace MarkupConverter
         /// <param name="inheritedProperties">
         /// properties inherited from parent context
         /// </param>
-        /// <param name="stylesheet"></param>
-        /// <param name="sourceContext"></param>
-        /// true indicates that a content added by this call contains at least one block element
-        /// </param>
+        /// <param name="context">Conversion context</param>
         /// <returns>
         /// The last htmlNode added to the implicit paragraph
         /// </returns>
@@ -796,8 +784,7 @@ namespace MarkupConverter
         /// <param name="inheritedProperties">
         /// properties inherited from parent context
         /// </param>
-        /// <param name="stylesheet"></param>
-        /// <param name="sourceContext"></param>
+        /// <param name="context">Conversion context</param>
         private static void AddList(XElement xamlParentElement, XElement htmlListElement, IDictionary<object, object> inheritedProperties, HtmlToXamlContext context)
         {
             string htmlListElementName = htmlListElement.Name.LocalName.ToLower();
@@ -866,6 +853,7 @@ namespace MarkupConverter
         /// <param name="inheritedProperties">
         /// Properties inherited from parent context
         /// </param>
+        /// <param name="context">Conversion context</param>
         /// <returns>
         /// XNode representing the first non-li node in the input after one or more li's have been processed.
         /// </returns>
@@ -921,6 +909,7 @@ namespace MarkupConverter
         /// <param name="inheritedProperties">
         /// Properties inherited from parent context
         /// </param>
+        /// <param name="context">Conversion context</param>
         private static void AddListItem(XElement xamlListElement, XElement htmlLIElement, IDictionary<object, object> inheritedProperties, HtmlToXamlContext context)
         {
             // Parameter validation
@@ -966,8 +955,9 @@ namespace MarkupConverter
         /// XElement reprsenting the Html table element to be converted
         /// </param>
         /// <param name="inheritedProperties">
-        /// IDictionary<object, object> representing properties inherited from parent context. 
+        /// Dictionary representing properties inherited from parent context. 
         /// </param>
+        /// <param name="context">Conversion context</param>
         private static void AddTable(XElement xamlParentElement, XElement htmlTableElement, IDictionary<object, object> inheritedProperties, HtmlToXamlContext context)
         {
             // Parameter validation
@@ -1148,8 +1138,7 @@ namespace MarkupConverter
         /// In case wneh it's not null, we will ignore source colgroup/col information.
         /// </param>
         /// <param name="currentProperties"></param>
-        /// <param name="stylesheet"></param>
-        /// <param name="sourceContext"></param>
+        /// <param name="context">Conversion context</param>
         private static void AddColumnInformation(XElement htmlTableElement, XElement xamlTableElement, ArrayList columnStartsAllRows, IDictionary<object, object> currentProperties, HtmlToXamlContext context)
         {
             // Add column information
@@ -1199,9 +1188,11 @@ namespace MarkupConverter
         /// </param>
         /// <param name="htmlColgroupElement">
         /// XElement representing Html colgroup element to be converted
+        /// </param>
         /// <param name="inheritedProperties">
         /// Properties inherited from parent context
         /// </param>
+        /// <param name="context">Conversion context</param>
         private static void AddTableColumnGroup(XElement xamlTableElement, XElement htmlColgroupElement, IDictionary<object, object> inheritedProperties, HtmlToXamlContext context)
         {
             IDictionary<object, object> localProperties;
@@ -1230,8 +1221,7 @@ namespace MarkupConverter
         /// <param name="inheritedProperties">
         /// properties inherited from parent context
         /// </param>
-        /// <param name="stylesheet"></param>
-        /// <param name="sourceContext"></param>
+        /// <param name="context">Conversion context</param>
         private static void AddTableColumn(XElement xamlTableElement, XElement htmlColElement, IDictionary<object, object> inheritedProperties, HtmlToXamlContext context)
         {
             IDictionary<object, object> localProperties;
@@ -1256,12 +1246,11 @@ namespace MarkupConverter
         /// XElement representing the first tr child of the tbody element to be read
         /// </param>
         /// <param name="currentProperties">
-        /// IDictionary<object, object> representing current properties of the tbody element that are generated and applied in the
+        /// Dictionary representing current properties of the tbody element that are generated and applied in the
         /// AddTable function; to be used as inheritedProperties when adding tr elements
         /// </param>
         /// <param name="columnStarts"></param>
-        /// <param name="stylesheet"></param>
-        /// <param name="sourceContext"></param>
+        /// <param name="context">Conversion context</param>
         /// <returns>
         /// XNode representing the current position of the iterator among tr elements
         /// </returns>
@@ -1344,6 +1333,9 @@ namespace MarkupConverter
         /// <param name="currentProperties">
         /// properties of the current html tr element to which cells are to be added
         /// </param>
+        /// <param name="activeRowSpans"></param>
+        /// <param name="context">Conversion context</param>
+        /// <param name="columnStarts"></param>
         /// <returns>
         /// XElement representing the current position of the iterator among the children of the parent Html tbody/tr element
         /// </returns>
@@ -1443,6 +1435,7 @@ namespace MarkupConverter
         /// <param name="currentProperties">
         /// Current properties for the html td/th element corresponding to xamlTableCellElement
         /// </param>
+        /// <param name="context">Conversion context</param>
         private static void AddDataToTableCell(XElement xamlTableCellElement, XNode htmlDataStartNode, IDictionary<object, object> currentProperties, HtmlToXamlContext context)
         {
             // Parameter validation
@@ -1468,6 +1461,7 @@ namespace MarkupConverter
         /// all the points which are the starting position of any column in the table, ordered from left to right.
         /// In case if analisys was impossible we return null.
         /// </returns>
+        /// <param name="context">Conversion context</param>
         private static ArrayList AnalyzeTableStructure(XElement htmlTableElement, HtmlToXamlContext context)
         {
             // Parameter validation
@@ -1559,11 +1553,13 @@ namespace MarkupConverter
         /// <param name="columnStarts">
         /// ArrayList of type double which contains the function output. If analysis fails, this parameter is set to null
         /// </param>
+        /// <param name="activeRowSpans"></param>
         /// <param name="tableWidth">
         /// Current width of the table. This is used to determine if a new column when added to the end of table should
         /// come after the last column in the table or is actually splitting the last column in two. If it is only splitting
         /// the last column it should inherit row span for that column
         /// </param>
+        /// <param name="context">Conversion context</param>
         /// <returns>
         /// Calculated width of a tbody.
         /// In case of non-analizable column width structure return 0;
@@ -1634,6 +1630,7 @@ namespace MarkupConverter
         /// Double value representing the current width of the table.
         /// Return 0 if analisys was insuccessful.
         /// </param>
+        /// <param name="context">Conversion context</param>
         private static double AnalyzeTRStructure(XElement htmlTRElement, ArrayList columnStarts, ArrayList activeRowSpans, double tableWidth, HtmlToXamlContext context)
         {
             double columnWidth;
@@ -1817,17 +1814,16 @@ namespace MarkupConverter
         /// decided by the value columnStart. The columnStarts ArrayList is ordered in ascending order.
         /// Returns an integer representing the index at which the column should be inserted
         /// </summary>
+        /// <param name="columnWidth"></param>
         /// <param name="columnStarts">
         /// Array list representing starting coordinates of all columns in the table
-        /// </param>
-        /// <param name="columnStart">
-        /// Starting coordinate of column we wish to insert into columnStart
         /// </param>
         /// <param name="columnIndex">
         /// Int representing the current column index. This acts as a clue while finding the insertion index.
         /// If the value of columnStarts at columnIndex is the same as columnStart, then this position alrady exists
         /// in the array and we can jsut return columnIndex.
         /// </param>
+        /// <param name="activeRowSpans"></param>
         /// <returns></returns>
         private static int GetNextColumnIndex(int columnIndex, double columnWidth, ArrayList columnStarts, ArrayList activeRowSpans)
         {
@@ -2033,8 +2029,10 @@ namespace MarkupConverter
         /// XElement representing Xaml element to which properties are to be applied
         /// </param>
         /// <param name="localProperties">
-        /// IDictionary<object, object> representing local properties of Html element that is converted into xamlElement
+        /// Dictionary representing local properties of Html element that is converted into xamlElement
         /// </param>
+        /// <param name="isBlock"></param>
+        /// <param name="context">Conversion context</param>
         private static void ApplyLocalProperties(XElement xamlElement, IDictionary<object, object> localProperties, bool isBlock, HtmlToXamlContext context)
         {
             bool marginSet = false;
@@ -2378,8 +2376,7 @@ namespace MarkupConverter
         /// <param name="localProperties">
         /// returns all formatting properties defined by this element - implied by its tag, its attributes, or its css inline style
         /// </param>
-        /// <param name="stylesheet"></param>
-        /// <param name="sourceContext"></param>
+        /// <param name="context">Conversion context</param>
         /// <returns>
         /// returns a combination of previous context with local set of properties.
         /// This value is not used in the current code - inntended for the future development.

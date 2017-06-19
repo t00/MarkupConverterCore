@@ -825,7 +825,7 @@ namespace MarkupConverter
     }
 
 
-    internal class CssStylesheet
+    public class CssStylesheet
     {
         // Constructor
         public CssStylesheet(XElement htmlElement)

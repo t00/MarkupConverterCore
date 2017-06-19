@@ -24,27 +24,25 @@ namespace MarkupConverter
 	/// </summary>
 	public static class HtmlFromXamlConverter
 	{
-		// ---------------------------------------------------------------------
-		//
-		// Internal Methods
-		//
-		// ---------------------------------------------------------------------
+        // ---------------------------------------------------------------------
+        //
+        // Internal Methods
+        //
+        // ---------------------------------------------------------------------
 
-		/// <summary>
-		/// Main entry point for Xaml-to-Html converter.
-		/// Converts a xaml string into html string.
-		/// </summary>
-		/// <param name="xamlString">
-		/// Xaml strinng to convert.
-		/// </param>
-		/// <param name="options">Conversion options</param>
-		/// <returns>
-		/// Html string produced from a source xaml.
-		/// </returns>
-		public static string ConvertXamlToHtml(string xamlString, HtmlFromXamlDocumentOptions options = null)
+        /// <summary>
+        /// Main entry point for Xaml-to-Html converter.
+        /// Converts a xaml string into html string.
+        /// </summary>
+        /// <param name="xamlString">
+        /// Xaml strinng to convert.
+        /// </param>
+        /// <param name="context">Conversion context</param>
+        /// <returns>
+        /// Html string produced from a source xaml.
+        /// </returns>
+        public static string ConvertXamlToHtml(string xamlString, HtmlFromXamlContext context)
 		{
-            var context = new HtmlFromXamlContext(options ?? new HtmlFromXamlDocumentOptions());
-
 			using(var xamlReader = XmlReader.Create(new StringReader(xamlString), new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore, IgnoreWhitespace = true }))
 			{
 				Preprocess(xamlReader, context);
@@ -107,17 +105,17 @@ namespace MarkupConverter
 			}
 		}
 
-		/// <summary>
-		/// Processes a root level element of XAML (normally it's FlowDocument element).
-		/// </summary>
-		/// <param name="xamlReader">
-		/// XTextReader for a source xaml.
-		/// </param>
-		/// <param name="htmlWriter">
-		/// TextWriter producing resulting html
-		/// </param>
-		/// <param name="options">Options from preprocessor</param>
-		private static bool WriteFlowDocument(XmlReader xamlReader, XmlWriter htmlWriter, HtmlFromXamlContext context)
+        /// <summary>
+        /// Processes a root level element of XAML (normally it's FlowDocument element).
+        /// </summary>
+        /// <param name="xamlReader">
+        /// XTextReader for a source xaml.
+        /// </param>
+        /// <param name="htmlWriter">
+        /// TextWriter producing resulting html
+        /// </param>
+        /// <param name="context">Conversion context</param>
+        private static bool WriteFlowDocument(XmlReader xamlReader, XmlWriter htmlWriter, HtmlFromXamlContext context)
 		{
 			if(!ReadNextToken(xamlReader))
 			{
@@ -150,25 +148,25 @@ namespace MarkupConverter
 			return true;
 		}
 
-	    /// <summary>
-	    /// Reads attributes of the current xaml element and converts
-	    /// them into appropriate html attributes or css styles.
-	    /// </summary>
-	    /// <param name="xamlReader">
-	    /// XTextReader which is expected to be at XmlNodeType.Element
-	    /// (opening element tag) position.
-	    /// The reader will remain at the same level after function complete.
-	    /// </param>
-	    /// <param name="htmlWriter">
-	    /// TextWriter for output html, which is expected to be in
-	    /// after WriteStartElement state.
-	    /// </param>
-	    /// <param name="inlineStyle">
-	    /// String builder for collecting css properties for inline STYLE attribute.
-	    /// </param>
-	    /// <param name="subElements"></param>
-	    /// <param name="options">Element level options</param>
-	    private static void WriteFormattingProperties(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, IList<string> subElements, HtmlFromXamlContext context)
+        /// <summary>
+        /// Reads attributes of the current xaml element and converts
+        /// them into appropriate html attributes or css styles.
+        /// </summary>
+        /// <param name="xamlReader">
+        /// XTextReader which is expected to be at XmlNodeType.Element
+        /// (opening element tag) position.
+        /// The reader will remain at the same level after function complete.
+        /// </param>
+        /// <param name="htmlWriter">
+        /// TextWriter for output html, which is expected to be in
+        /// after WriteStartElement state.
+        /// </param>
+        /// <param name="inlineStyle">
+        /// String builder for collecting css properties for inline STYLE attribute.
+        /// </param>
+        /// <param name="subElements"></param>
+        /// <param name="context">Conversion context</param>
+        private static void WriteFormattingProperties(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, IList<string> subElements, HtmlFromXamlContext context)
 		{
 			Debug.Assert(xamlReader.NodeType == XmlNodeType.Element);
 
@@ -297,7 +295,7 @@ namespace MarkupConverter
 							htmlWriter.WriteAttributeString("ROWSPAN", xamlReader.Value);
 							break;
                         default:
-                            context.Options.OnWriteCustomProperty?.Invoke(xamlReader, htmlWriter, inlineStyle, context.Options);
+                            context.OnWriteCustomProperty?.Invoke(xamlReader, htmlWriter, inlineStyle, context, xamlReader.Name);
                             break;
 					}
 
@@ -397,22 +395,22 @@ namespace MarkupConverter
 			return string.Format("{0:0.#}px {1:0.#}px {2:0.#}px {3:0.#}px", t.Top, t.Right, t.Bottom, t.Left);
 		}
 
-		/// <summary>
-		/// Reads a content of current xaml element, converts it
-		/// </summary>
-		/// <param name="xamlReader">
-		/// XTextReader which is expected to be at XmlNodeType.Element
-		/// (opening element tag) position.
-		/// </param>
-		/// <param name="htmlWriter">
-		/// May be null, in which case we are skipping the xaml element;
-		/// witout producing any output to html.
-		/// </param>
-		/// <param name="inlineStyle">
-		/// StringBuilder used for collecting css properties for inline STYLE attribute.
-		/// </param>
-		/// <param name="options">Element level option</param>
-		private static void WriteElementContent(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlContext context)
+        /// <summary>
+        /// Reads a content of current xaml element, converts it
+        /// </summary>
+        /// <param name="xamlReader">
+        /// XTextReader which is expected to be at XmlNodeType.Element
+        /// (opening element tag) position.
+        /// </param>
+        /// <param name="htmlWriter">
+        /// May be null, in which case we are skipping the xaml element;
+        /// witout producing any output to html.
+        /// </param>
+        /// <param name="inlineStyle">
+        /// StringBuilder used for collecting css properties for inline STYLE attribute.
+        /// </param>
+        /// <param name="context">Conversion context</param>
+        private static void WriteElementContent(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlContext context)
 		{
 			Debug.Assert(xamlReader.NodeType == XmlNodeType.Element);
 
@@ -469,8 +467,9 @@ namespace MarkupConverter
 									htmlWriter.WriteAttributeString("style", inlineStyle.ToString());
 								}
 								htmlWriter.WriteString(xamlReader.Value);
+							    context.OnWriteText?.Invoke(xamlReader, htmlWriter, inlineStyle, context, xamlReader.Value);
 							}
-							elementContentStarted = true;
+                            elementContentStarted = true;
 							break;
 					}
 				}
@@ -479,22 +478,22 @@ namespace MarkupConverter
 			}
 		}
 
-		/// <summary>
-		/// Conberts an element notation of complex property into
-		/// </summary>
-		/// <param name="xamlReader">
-		/// On entry this XTextReader must be on Element start tag;
-		/// on exit - on EndElement tag.
-		/// </param>
-		/// <param name="htmlWriter">
-		/// May be null, in which case we are skipping xaml content
-		/// without producing any html output
-		/// </param>
-		/// <param name="inlineStyle">
-		/// StringBuilder containing a value for STYLE attribute.
-		/// </param>
-		/// <param name="options">Element level options</param>
-		private static bool HandleComplexProperty(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlContext context)
+        /// <summary>
+        /// Conberts an element notation of complex property into
+        /// </summary>
+        /// <param name="xamlReader">
+        /// On entry this XTextReader must be on Element start tag;
+        /// on exit - on EndElement tag.
+        /// </param>
+        /// <param name="htmlWriter">
+        /// May be null, in which case we are skipping xaml content
+        /// without producing any html output
+        /// </param>
+        /// <param name="inlineStyle">
+        /// StringBuilder containing a value for STYLE attribute.
+        /// </param>
+        /// <param name="context">Conversion context</param>
+        private static bool HandleComplexProperty(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlContext context)
 		{
 			Debug.Assert(xamlReader.NodeType == XmlNodeType.Element);
 
@@ -544,22 +543,22 @@ namespace MarkupConverter
 			return true;
 		}
 
-		/// <summary>
-		/// Converts a xaml element into an appropriate html element.
-		/// </summary>
-		/// <param name="xamlReader">
-		/// On entry this XTextReader must be on Element start tag;
-		/// on exit - on EndElement tag.
-		/// </param>
-		/// <param name="htmlWriter">
-		/// May be null, in which case we are skipping xaml content
-		/// without producing any html output
-		/// </param>
-		/// <param name="inlineStyle">
-		/// StringBuilder used for collecting css properties for inline STYLE attributes on every level.
-		/// </param>
-		/// <param name="options">Options from preprocessor</param>
-		private static void WriteElement(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlContext context)
+        /// <summary>
+        /// Converts a xaml element into an appropriate html element.
+        /// </summary>
+        /// <param name="xamlReader">
+        /// On entry this XTextReader must be on Element start tag;
+        /// on exit - on EndElement tag.
+        /// </param>
+        /// <param name="htmlWriter">
+        /// May be null, in which case we are skipping xaml content
+        /// without producing any html output
+        /// </param>
+        /// <param name="inlineStyle">
+        /// StringBuilder used for collecting css properties for inline STYLE attributes on every level.
+        /// </param>
+        /// <param name="context">Conversion context</param>
+        private static void WriteElement(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlContext context)
 		{
 			Debug.Assert(xamlReader.NodeType == XmlNodeType.Element);
 
@@ -630,10 +629,10 @@ namespace MarkupConverter
 						htmlElementName = "li";
 						break;
 					default:
-                        if (context.Options.OnGetHtmlElementName != null)
+                        if (context.OnGetHtmlElementName != null)
                         {
                             // Custom handling of the element
-                            htmlElementName = context.Options.OnGetHtmlElementName(xamlReader.LocalName);
+                            htmlElementName = context.OnGetHtmlElementName(xamlReader.LocalName);
                         }
                         else
                         {

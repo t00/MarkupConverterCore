@@ -10,7 +10,7 @@ namespace MarkupConverterTests
         public void TestParagraphRun()
         {
             var html = Documents.TestParagraph_Html;
-            var xaml = HtmlToXamlConverter.ConvertHtmlToXaml(html);
+            var xaml = HtmlToXamlConverter.ConvertHtmlToXaml(html, new HtmlToXamlContext(new HtmlToXamlDocumentOptions()));
             Assert.AreEqual(Documents.TestParagraph_XamlFromHtml, xaml);
         }
     }

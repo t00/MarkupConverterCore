@@ -3,7 +3,7 @@ using System.Xml.Linq;
 
 namespace MarkupConverter
 {
-    internal class HtmlToXamlContext
+    public class HtmlToXamlContext
     {
         public HtmlToXamlDocumentOptions Options { get; }
 
@@ -12,10 +12,10 @@ namespace MarkupConverter
             Options = options;
         }
 
-        public CssStylesheet Stylesheet { get; set; }
+        public CssStylesheet Stylesheet { get; internal set; }
 
-        public IList<XElement> SourceContext { get; set; }
+        public IList<XElement> SourceContext { get; internal set; }
 
-        public IList<XElement> DestinationContext { get; set; }
+        public IList<XElement> DestinationContext { get; internal set; }
     }
 }

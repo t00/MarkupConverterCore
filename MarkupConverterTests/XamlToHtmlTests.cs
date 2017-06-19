@@ -10,7 +10,7 @@ namespace MarkupConverterTests
         public void TestParagraphRun()
         {
             var xaml = Documents.TestParagraph_Xaml;
-            var html = HtmlFromXamlConverter.ConvertXamlToHtml(xaml, new HtmlFromXamlDocumentOptions());
+            var html = HtmlFromXamlConverter.ConvertXamlToHtml(xaml, new HtmlFromXamlContext(new HtmlFromXamlDocumentOptions()));
             Assert.AreEqual(string.Format(Documents.FullHtml_Format, Documents.TestParagraph_Html), html);
         }
 
@@ -18,7 +18,7 @@ namespace MarkupConverterTests
         public void TestParagraphRunSpan()
         {
             var xaml = Documents.TestParagraph_Xaml;
-            var html = HtmlFromXamlConverter.ConvertXamlToHtml(xaml, new HtmlFromXamlDocumentOptions { OuterElement = "", InnerElement = "span" });
+            var html = HtmlFromXamlConverter.ConvertXamlToHtml(xaml, new HtmlFromXamlContext(new HtmlFromXamlDocumentOptions { OuterElement = "", InnerElement = "span" }));
             Assert.AreEqual($"<span>{Documents.TestParagraph_Html}</span>", html);
         }
     }
