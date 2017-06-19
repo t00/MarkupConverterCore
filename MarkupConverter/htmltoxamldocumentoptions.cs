@@ -1,7 +1,4 @@
-﻿using System;
-using System.Xml.Linq;
-
-namespace MarkupConverter
+﻿namespace MarkupConverter
 {
     public class HtmlToXamlDocumentOptions
     {
@@ -11,7 +8,5 @@ namespace MarkupConverter
         /// dependeing on StartFragment/EndFragment comments locations.
         /// </summary>
         public bool IsRootSection { get; set; }
-
-        public Action<HtmlXamlImage, XElement> OnProcessImage { get; set; }
     }
 }

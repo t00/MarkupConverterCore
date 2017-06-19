@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Xml.Linq;
 
 namespace MarkupConverter
@@ -6,6 +7,8 @@ namespace MarkupConverter
     public class HtmlToXamlContext
     {
         public HtmlToXamlDocumentOptions Options { get; }
+
+        public Action<HtmlXamlImage, XElement, HtmlToXamlContext> OnProcessImage { get; set; }
 
         public HtmlToXamlContext(HtmlToXamlDocumentOptions options)
         {

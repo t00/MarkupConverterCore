@@ -77,7 +77,8 @@ namespace MarkupConverter
 
             // Create an XDocument for generated xaml
             var xamlTree = new XDocument();
-            var xamlFlowDocumentElement = new XElement(XName.Get(rootElementName, _xamlNamespace));
+            var spacePreserve = new XAttribute(XNamespace.Xml + "space", "preserve");
+            var xamlFlowDocumentElement = new XElement(XName.Get(rootElementName, _xamlNamespace), spacePreserve);
             
             // Destination context is a stack of generated Xaml elements
             context.DestinationContext = new List<XElement>(10);
@@ -103,10 +104,6 @@ namespace MarkupConverter
             if (context.Options.IsRootSection)
             {
                 xamlFlowDocumentElement = ExtractInlineFragment(xamlFlowDocumentElement);
-            }
-            else
-            {
-                xamlFlowDocumentElement.SetAttributeValue(XName.Get("space", "xml"), "preserve");
             }
 
             return xamlTree;
@@ -758,11 +755,39 @@ namespace MarkupConverter
         {
             IDictionary<string, string> localProperties;
             IDictionary<string, string> currentProperties = GetElementProperties(htmlElement, inheritedProperties, out localProperties, context);
-            var image = new HtmlXamlImage
+            var image = new HtmlXamlImage();
+            string widthText;
+            double width;
+            if (currentProperties.TryGetValue("width", out widthText) && TryGetLengthValue(widthText, out width))
             {
-
-            };
-            context.Options.OnProcessImage?.Invoke(image, xamlParentElement);
+                image.Width = (int)width;
+            }
+            string heightText;
+            double height;
+            if (currentProperties.TryGetValue("height", out heightText) && TryGetLengthValue(heightText, out height))
+            {
+                image.Height = (int)height;
+            }
+            string alt;
+            if (currentProperties.TryGetValue("alt", out alt))
+            {
+                image.Description = alt;
+            }
+            string src;
+            if(currentProperties.TryGetValue("src", out src) && !string.IsNullOrEmpty(src))
+            {
+                if(src.StartsWith(_base64ImageHeader))
+                {
+                    var baseIndex = src.IndexOf(_base64ImageTag);
+                    if (baseIndex > 0)
+                    {
+                        image.ContentsBase64 = src.Substring(baseIndex + _base64ImageTag.Length);
+                        image.MimeType = src.Substring(_base64ImageHeader.Length, baseIndex - _base64ImageHeader.Length);
+                        image.IsInline = true;
+                    }
+                }
+            }
+            context.OnProcessImage?.Invoke(image, xamlParentElement, context);
         }
 
         // .............................................................
@@ -2756,6 +2781,10 @@ namespace MarkupConverter
         #region Private Fields
 
         static string _xamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
+
+        static string _base64ImageHeader = "data:";
+
+        static string _base64ImageTag = ";base64,";
 
         #endregion Private Fields
     }
