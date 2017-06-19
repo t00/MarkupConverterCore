@@ -453,11 +453,11 @@ namespace MarkupConverter
         }
 
         /// <summary>
-        /// initializes _htmlCharacterEntities IDictionary<object, object> with the character corresponding to entity names
+        /// initializes _htmlCharacterEntities IDictionary<string, string> with the character corresponding to entity names
         /// </summary>
         private static void InitializeHtmlCharacterEntities()
         {
-            _htmlCharacterEntities = new Dictionary<object, object>();
+            _htmlCharacterEntities = new Dictionary<string, char>();
             _htmlCharacterEntities["Aacute"] = (char)193;
             _htmlCharacterEntities["aacute"] = (char)225;
             _htmlCharacterEntities["Acirc"] = (char)194;
@@ -719,7 +719,7 @@ namespace MarkupConverter
         #region Private Fields
 
         // html element names
-        // this is an array list now, but we may want to make it a IDictionary<object, object> later for better performance
+        // this is an array list now, but we may want to make it a IDictionary<string, string> later for better performance
         private static ArrayList _htmlInlineElements;
 
         private static ArrayList _htmlBlockElements;
@@ -764,8 +764,8 @@ namespace MarkupConverter
         // names of elements closing the tr element
         private static ArrayList _htmlElementsClosingTR;
 
-        // html character entities IDictionary<object, object>
-        private static IDictionary<object, object> _htmlCharacterEntities;
+        // html character entities IDictionary<string, string>
+        private static IDictionary<string, char> _htmlCharacterEntities;
 
         #endregion Private Fields
     }

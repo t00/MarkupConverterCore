@@ -28,7 +28,7 @@ namespace MarkupConverter
         //
         // .................................................................
 
-        internal static void GetElementPropertiesFromCssAttributes(XElement htmlElement, string elementName, IDictionary<object, object> localProperties, HtmlToXamlContext context)
+        internal static void GetElementPropertiesFromCssAttributes(XElement htmlElement, string elementName, IDictionary<string, string> localProperties, HtmlToXamlContext context)
         {
             string styleFromStylesheet = context.Stylesheet.GetStyle(elementName, context.SourceContext);
 
@@ -248,7 +248,7 @@ namespace MarkupConverter
             return null;
         }
 
-        private static void ParseWordEnumeration(string[] words, string styleValue, ref int nextIndex, IDictionary<object, object> localProperties, string attributeName)
+        private static void ParseWordEnumeration(string[] words, string styleValue, ref int nextIndex, IDictionary<string, string> localProperties, string attributeName)
         {
             string attributeValue = ParseWordEnumeration(words, styleValue, ref nextIndex);
             if (attributeValue != null)
@@ -305,7 +305,7 @@ namespace MarkupConverter
             return null;
         }
 
-        private static void ParseCssSize(string styleValue, ref int nextIndex, IDictionary<object, object> localValues, string propertyName, bool mustBeNonNegative)
+        private static void ParseCssSize(string styleValue, ref int nextIndex, IDictionary<string, string> localValues, string propertyName, bool mustBeNonNegative)
         {
             string length = ParseCssSize(styleValue, ref nextIndex, mustBeNonNegative);
             if (length != null)
@@ -408,7 +408,7 @@ namespace MarkupConverter
             return color;
         }
 
-        private static void ParseCssColor(string styleValue, ref int nextIndex, IDictionary<object, object> localValues, string propertyName)
+        private static void ParseCssColor(string styleValue, ref int nextIndex, IDictionary<string, string> localValues, string propertyName)
         {
             string color = ParseCssColor(styleValue, ref nextIndex);
             if (color != null)
@@ -451,7 +451,7 @@ namespace MarkupConverter
         private static readonly string[] _fontSizeUnits = new string[] { "px", "mm", "cm", "in", "pt", "pc", "em", "ex", "%" };
 
         // Parses CSS string fontStyle representing a value for css font attribute
-        private static void ParseCssFont(string styleValue, IDictionary<object, object> localProperties)
+        private static void ParseCssFont(string styleValue, IDictionary<string, string> localProperties)
         {
             int nextIndex = 0;
 
@@ -471,22 +471,22 @@ namespace MarkupConverter
             ParseCssFontFamily(styleValue, ref nextIndex, localProperties);
         }
 
-        private static void ParseCssFontStyle(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
+        private static void ParseCssFontStyle(string styleValue, ref int nextIndex, IDictionary<string, string> localProperties)
         {
             ParseWordEnumeration(_fontStyles, styleValue, ref nextIndex, localProperties, "font-style");
         }
 
-        private static void ParseCssFontVariant(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
+        private static void ParseCssFontVariant(string styleValue, ref int nextIndex, IDictionary<string, string> localProperties)
         {
             ParseWordEnumeration(_fontVariants, styleValue, ref nextIndex, localProperties, "font-variant");
         }
 
-        private static void ParseCssFontWeight(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
+        private static void ParseCssFontWeight(string styleValue, ref int nextIndex, IDictionary<string, string> localProperties)
         {
             ParseWordEnumeration(_fontWeights, styleValue, ref nextIndex, localProperties, "font-weight");
         }
 
-        private static void ParseCssFontFamily(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
+        private static void ParseCssFontFamily(string styleValue, ref int nextIndex, IDictionary<string, string> localProperties)
         {
             string fontFamilyList = null;
 
@@ -581,7 +581,7 @@ namespace MarkupConverter
         private static readonly string[] _listStyleTypes = new string[] { "disc", "circle", "square", "decimal", "lower-roman", "upper-roman", "lower-alpha", "upper-alpha", "none" };
         private static readonly string[] _listStylePositions = new string[] { "inside", "outside" };
 
-        private static void ParseCssListStyle(string styleValue, IDictionary<object, object> localProperties)
+        private static void ParseCssListStyle(string styleValue, IDictionary<string, string> localProperties)
         {
             int nextIndex = 0;
 
@@ -640,7 +640,7 @@ namespace MarkupConverter
 
         private static readonly string[] _textDecorations = new string[] { "none", "underline", "overline", "line-through", "blink" };
 
-        private static void ParseCssTextDecoration(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
+        private static void ParseCssTextDecoration(string styleValue, ref int nextIndex, IDictionary<string, string> localProperties)
         {
             // Set default text-decorations:none;
             for (int i = 1; i < _textDecorations.Length; i++)
@@ -668,7 +668,7 @@ namespace MarkupConverter
 
         private static readonly string[] _textTransforms = new string[] { "none", "capitalize", "uppercase", "lowercase" };
 
-        private static void ParseCssTextTransform(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
+        private static void ParseCssTextTransform(string styleValue, ref int nextIndex, IDictionary<string, string> localProperties)
         {
             ParseWordEnumeration(_textTransforms, styleValue, ref nextIndex, localProperties, "text-transform");
         }
@@ -681,7 +681,7 @@ namespace MarkupConverter
 
         private static readonly string[] _textAligns = new string[] { "left", "right", "center", "justify" };
 
-        private static void ParseCssTextAlign(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
+        private static void ParseCssTextAlign(string styleValue, ref int nextIndex, IDictionary<string, string> localProperties)
         {
             ParseWordEnumeration(_textAligns, styleValue, ref nextIndex, localProperties, "text-align");
         }
@@ -694,7 +694,7 @@ namespace MarkupConverter
 
         private static readonly string[] _verticalAligns = new string[] { "baseline", "sub", "super", "top", "text-top", "middle", "bottom", "text-bottom" };
 
-        private static void ParseCssVerticalAlign(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
+        private static void ParseCssVerticalAlign(string styleValue, ref int nextIndex, IDictionary<string, string> localProperties)
         {
             //  Parse percentage value for vertical-align style
             ParseWordEnumeration(_verticalAligns, styleValue, ref nextIndex, localProperties, "vertical-align");
@@ -708,7 +708,7 @@ namespace MarkupConverter
 
         private static readonly string[] _floats = new string[] { "left", "right", "none" };
 
-        private static void ParseCssFloat(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
+        private static void ParseCssFloat(string styleValue, ref int nextIndex, IDictionary<string, string> localProperties)
         {
             ParseWordEnumeration(_floats, styleValue, ref nextIndex, localProperties, "float");
         }
@@ -721,7 +721,7 @@ namespace MarkupConverter
 
         private static readonly string[] _clears = new string[] { "none", "left", "right", "both" };
 
-        private static void ParseCssClear(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
+        private static void ParseCssClear(string styleValue, ref int nextIndex, IDictionary<string, string> localProperties)
         {
             ParseWordEnumeration(_clears, styleValue, ref nextIndex, localProperties, "clear");
         }
@@ -733,7 +733,7 @@ namespace MarkupConverter
         // .................................................................
 
         // Generic method for parsing any of four-values properties, such as margin, padding, border-width, border-style, border-color
-        private static bool ParseCssRectangleProperty(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties, string propertyName)
+        private static bool ParseCssRectangleProperty(string styleValue, ref int nextIndex, IDictionary<string, string> localProperties, string propertyName)
         {
             // CSS Spec: 
             // If only one value is set, then the value applies to all four sides;
@@ -780,7 +780,7 @@ namespace MarkupConverter
 
         // border: [ <border-width> || <border-style> || <border-color> ]
 
-        private static void ParseCssBorder(string styleValue, ref int nextIndex, IDictionary<object, object> localProperties)
+        private static void ParseCssBorder(string styleValue, ref int nextIndex, IDictionary<string, string> localProperties)
         {
             while (
                 ParseCssRectangleProperty(styleValue, ref nextIndex, localProperties, "border-width") ||
@@ -818,7 +818,7 @@ namespace MarkupConverter
         //
         // .................................................................
 
-        private static void ParseCssBackground(string styleValue, ref int nextIndex, IDictionary<object, object> localValues)
+        private static void ParseCssBackground(string styleValue, ref int nextIndex, IDictionary<string, string> localValues)
         {
             //  Implement parsing background attribute
         }
