@@ -326,8 +326,10 @@ namespace MarkupConverter
 				inlineStyle.Append("border-style:solid;");
 			}
 
-			// Return the xamlReader back to element level
-			xamlReader.MoveToElement();
+            context.OnWriteElementStyle?.Invoke(xamlReader, htmlWriter, inlineStyle, context, elementName);
+
+            // Return the xamlReader back to element level
+            xamlReader.MoveToElement();
 			Debug.Assert(xamlReader.NodeType == XmlNodeType.Element);
 		}
 
@@ -451,7 +453,7 @@ namespace MarkupConverter
 							{
 								if(!elementContentStarted && inlineStyle.Length > 0)
 								{
-									htmlWriter.WriteAttributeString("style", inlineStyle.ToString());
+                                    htmlWriter.WriteAttributeString("style", inlineStyle.ToString());
 								}
 								htmlWriter.WriteComment(xamlReader.Value);
 							}

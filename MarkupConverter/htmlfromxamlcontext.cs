@@ -15,6 +15,8 @@ namespace MarkupConverter
 
         public HtmlWriteDelegate OnWriteText { get; set; }
 
+        public HtmlWriteDelegate OnWriteElementStyle { get; set; }
+
         public Func<string, string> OnGetHtmlElementName { get; set; }
 
         public HtmlFromXamlContext(HtmlFromXamlDocumentOptions options)
