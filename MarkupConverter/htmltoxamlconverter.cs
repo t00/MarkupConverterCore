@@ -82,7 +82,7 @@ namespace MarkupConverter
             
             // Destination context is a stack of generated Xaml elements
             context.DestinationContext = new List<XElement>(10);
-            context.DestinationContext.Add(xamlFlowDocumentElement);
+            PushDestination(xamlFlowDocumentElement, context);
 
             xamlTree.Add(xamlFlowDocumentElement);
 
@@ -107,6 +107,12 @@ namespace MarkupConverter
             }
 
             return xamlTree;
+        }
+
+        private static void PushDestination(XElement element, HtmlToXamlContext context)
+        {
+            context.DestinationContext.Add(element);
+            context.OnElementAdded?.Invoke(element, context);
         }
 
         /// <summary>
@@ -396,7 +402,7 @@ namespace MarkupConverter
 
                 // Create a XAML element corresponding to this html element
                 XElement xamlElement = new XElement(XName.Get(Xaml_Section, _xamlNamespace));
-                context.DestinationContext.Add(xamlElement);
+                PushDestination(xamlElement, context);
                 ApplyLocalProperties(xamlElement, localProperties, /*isBlock:*/true, context);
 
                 // Decide whether we can unwrap this element as not having any formatting significance.
@@ -445,7 +451,7 @@ namespace MarkupConverter
 
             // Create a XAML element corresponding to this html element
             XElement xamlElement = new XElement(XName.Get(Xaml_Paragraph, _xamlNamespace));
-            context.DestinationContext.Add(xamlElement);
+            PushDestination(xamlElement, context);
             ApplyLocalProperties(xamlElement, localProperties, /*isBlock:*/true, context);
 
             // Recurse into element subtree
@@ -480,7 +486,7 @@ namespace MarkupConverter
         {
             // Collect all non-block elements and wrap them into implicit Paragraph
             XElement xamlParagraph = new XElement(XName.Get(Xaml_Paragraph, _xamlNamespace));
-            context.DestinationContext.Add(xamlParagraph);
+            PushDestination(xamlParagraph, context);
             XNode lastNodeProcessed = null;
             while (htmlNode != null)
             {
@@ -616,7 +622,7 @@ namespace MarkupConverter
 
             // Create a XAML element corresponding to this html element
             XElement xamlElement = new XElement(XName.Get(xamlElementName, _xamlNamespace));
-            context.DestinationContext.Add(xamlElement);
+            PushDestination(xamlElement, context);
             ApplyLocalProperties(xamlElement, localProperties, /*isBlock:*/false, context);
 
             // Recurse into element subtree
@@ -669,7 +675,7 @@ namespace MarkupConverter
 
                 // Create a XAML element corresponding to this html element
                 XElement xamlElement = new XElement(XName.Get(Xaml_Hyperlink, _xamlNamespace));
-                context.DestinationContext.Add(xamlElement);
+                PushDestination(xamlElement, context);
                 ApplyLocalProperties(xamlElement, localProperties, /*isBlock:*/false, context);
 
                 string[] hrefParts = href.Split(new char[] { '#' });
@@ -819,7 +825,7 @@ namespace MarkupConverter
 
             // Create Xaml List element
             XElement xamlListElement = new XElement(XName.Get(Xaml_List, _xamlNamespace));
-            context.DestinationContext.Add(xamlListElement);
+            PushDestination(xamlListElement, context);
 
             // Set default list markers
             if (htmlListElementName == "ol")
@@ -948,7 +954,7 @@ namespace MarkupConverter
             IDictionary<string, string> currentProperties = GetElementProperties(htmlLIElement, inheritedProperties, out localProperties, context);
 
             XElement xamlListItemElement = new XElement(XName.Get(Xaml_ListItem, _xamlNamespace));
-            context.DestinationContext.Add(xamlListItemElement);
+            PushDestination(xamlListItemElement, context);
 
             // TODO: process local properties for li element
 
@@ -1016,7 +1022,7 @@ namespace MarkupConverter
             {
                 // Create xamlTableElement
                 XElement xamlTableElement = new XElement(XName.Get(Xaml_Table, _xamlNamespace));
-                context.DestinationContext.Add(xamlTableElement);
+                PushDestination(xamlTableElement, context);
 
                 // Analyze table structure for column widths and rowspan attributes
                 ArrayList columnStarts = AnalyzeTableStructure(htmlTableElement, context);
@@ -1299,7 +1305,7 @@ namespace MarkupConverter
                 if (htmlChildNode.Name.LocalName.ToLower() == "tr")
                 {
                     XElement xamlTableRowElement = new XElement(XName.Get(Xaml_TableRow, _xamlNamespace));
-                    context.DestinationContext.Add(xamlTableRowElement);
+                    PushDestination(xamlTableRowElement, context);
                     context.SourceContext.Add(htmlChildNode);
 
                     // Get tr element properties
@@ -1324,7 +1330,7 @@ namespace MarkupConverter
                 {
                     // Tr element is not present. We create one and add td elements to it
                     XElement xamlTableRowElement = new XElement(XName.Get(Xaml_TableRow, _xamlNamespace));
-                    context.DestinationContext.Add(xamlTableRowElement);
+                    PushDestination(xamlTableRowElement, context);
 
                     // This is incorrect formatting and the column starts should not be set in this case
                     Debug.Assert(columnStarts == null);
@@ -1385,7 +1391,7 @@ namespace MarkupConverter
                 if (htmlChildNode.Name.LocalName.ToLower() == "td" || htmlChildNode.Name.LocalName.ToLower() == "th")
                 {
                     XElement xamlTableCellElement = new XElement(XName.Get(Xaml_TableCell, _xamlNamespace));
-                    context.DestinationContext.Add(xamlTableCellElement);
+                    PushDestination(xamlTableCellElement, context);
                     context.SourceContext.Add(htmlChildNode);
 
                     IDictionary<string, string> tdElementLocalProperties;

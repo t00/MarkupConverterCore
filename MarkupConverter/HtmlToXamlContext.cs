@@ -10,6 +10,8 @@ namespace MarkupConverter
 
         public Action<HtmlXamlImage, XElement, HtmlToXamlContext> OnProcessImage { get; set; }
 
+        public Action<XElement, HtmlToXamlContext> OnElementAdded { get; set; }
+
         public HtmlToXamlContext(HtmlToXamlDocumentOptions options)
         {
             Options = options;
