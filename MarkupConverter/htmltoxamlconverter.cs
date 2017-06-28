@@ -2449,15 +2449,7 @@ namespace MarkupConverter
                 case "font":
                     SetProperty(htmlElement, "face", localProperties, "font-family");
                     SetProperty(htmlElement, "color", localProperties);
-                    var attributeValue = GetAttribute(htmlElement, "size");
-                    if (attributeValue != null)
-                    {
-                        double fontSize;
-                        if (TryGetLengthValue(attributeValue, out fontSize))
-                        {
-                            localProperties["font-size"] = fontSize.ToString(CultureInfo.InvariantCulture);
-                        }
-                    }
+                    SetLength(htmlElement, "size", localProperties, "font-size");
                     break;
                 case "samp":
                     localProperties["font-family"] = "Courier New"; // code sample
@@ -2526,6 +2518,8 @@ namespace MarkupConverter
                 case "img":
                     SetProperty(htmlElement, "src", localProperties);
                     SetProperty(htmlElement, "alt", localProperties);
+                    SetLength(htmlElement, "width", localProperties);
+                    SetLength(htmlElement, "height", localProperties);
                     break;
             }
 
@@ -2539,6 +2533,19 @@ namespace MarkupConverter
             }
 
             return currentProperties;
+        }
+
+        private static void SetLength(XElement htmlElement, string attributeName, IDictionary<string, string> localProperties, string propertyName = null)
+        {
+            var text = GetAttribute(htmlElement, attributeName);
+            if (text != null)
+            {
+                double value;
+                if (TryGetLengthValue(text, out value))
+                {
+                    localProperties[propertyName ?? attributeName] = value.ToString(CultureInfo.InvariantCulture);
+                }
+            }
         }
 
         /// <summary>
