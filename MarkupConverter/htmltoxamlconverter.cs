@@ -498,7 +498,7 @@ namespace MarkupConverter
                 {
                     if (((XText)htmlNode).Value.Trim().Length > 0)
                     {
-                        AddTextRun(xamlParagraph, ((XText)htmlNode).Value);
+                        AddTextRun(xamlParagraph, ((XText)htmlNode).Value, context);
                     }
                 }
                 else if (htmlNode is XElement)
@@ -548,7 +548,7 @@ namespace MarkupConverter
             }
             else if (htmlNode is XText)
             {
-                AddTextRun(xamlParentElement, ((XText)htmlNode).Value);
+                AddTextRun(xamlParentElement, ((XText)htmlNode).Value, context);
             }
             else if (htmlNode is XElement)
             {
@@ -637,7 +637,7 @@ namespace MarkupConverter
         }
 
         // Adds a text run to a xaml tree
-        private static void AddTextRun(XElement xamlElement, string textData)
+        private static void AddTextRun(XElement xamlElement, string textData, HtmlToXamlContext context)
         {
             // Remove control characters
             for (int i = 0; i < textData.Length; i++)
@@ -656,6 +656,8 @@ namespace MarkupConverter
             {
                 xamlElement.Add(new XText(textData));
             }
+
+            context.OnWriteText?.Invoke(xamlElement, textData, context);
         }
 
         private static void AddHyperlink(XElement xamlParentElement, XElement htmlElement, IDictionary<string, string> inheritedProperties, HtmlToXamlContext context)

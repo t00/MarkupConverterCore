@@ -8,9 +8,11 @@ namespace MarkupConverter
     {
         public HtmlToXamlDocumentOptions Options { get; }
 
-        public Action<HtmlXamlImage, XElement, HtmlToXamlContext> OnProcessImage { get; set; }
+        public Func<HtmlXamlImage, XElement, HtmlToXamlContext, bool> OnProcessImage { get; set; }
 
         public Action<XElement, HtmlToXamlContext> OnElementAdded { get; set; }
+
+        public Action<XElement, string, HtmlToXamlContext> OnWriteText { get; set; }
 
         public HtmlToXamlContext(HtmlToXamlDocumentOptions options)
         {
