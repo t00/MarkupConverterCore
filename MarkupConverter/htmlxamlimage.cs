@@ -5,6 +5,13 @@ namespace MarkupConverter
 {
     public class HtmlXamlImage
     {
+        public enum FloatDirection
+        {
+            None,
+            Left,
+            Right
+        }
+
         public int Index { get; set; }
 
         public int Width { get; set; }
@@ -12,6 +19,8 @@ namespace MarkupConverter
         public int Height { get; set; }
 
         public bool IsInline { get; set; }
+
+        public FloatDirection Float { get; set; }
 
         public string InlineFormat { get; set; }
 
