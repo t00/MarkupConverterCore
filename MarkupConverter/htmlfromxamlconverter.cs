@@ -468,9 +468,10 @@ namespace MarkupConverter
 								{
 									htmlWriter.WriteAttributeString("style", inlineStyle.ToString());
 								}
-								htmlWriter.WriteString(xamlReader.Value);
-							    context.OnWriteText?.Invoke(xamlReader, htmlWriter, inlineStyle, context, xamlReader.Value);
-							}
+                                var text = xamlReader.Value;
+							    context.OnWriteText?.Invoke(xamlReader, htmlWriter, inlineStyle, context, ref text);
+                                htmlWriter.WriteString(text);
+                            }
                             elementContentStarted = true;
 							break;
 					}

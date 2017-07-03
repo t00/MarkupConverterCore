@@ -654,12 +654,12 @@ namespace MarkupConverter
             //  This is a work around since WPF/XAML does not support &nbsp.
             textData = textData.Replace((char)160, ' ');
 
+            context.OnWriteText?.Invoke(xamlElement, context, ref textData);
+
             if (textData.Length > 0)
             {
                 xamlElement.Add(new XText(textData));
             }
-
-            context.OnWriteText?.Invoke(xamlElement, textData, context);
         }
 
         private static void AddHyperlink(XElement xamlParentElement, XElement htmlElement, IDictionary<string, string> inheritedProperties, HtmlToXamlContext context)

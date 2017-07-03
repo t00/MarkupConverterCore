@@ -134,7 +134,7 @@
 &lt;/FlowDocument&gt;</value>
   </data>
   <data name="TestParagraph_XamlFromHtml" xml:space="preserve">
-    <value>&lt;FlowDocument p1:space="preserve" xmlns:p1="xml" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;
+    <value>&lt;FlowDocument xml:space="preserve" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;
   &lt;Paragraph TextIndent="0" FontFamily="verdana" FontSize="16" Margin="0"&gt;Paragraph 1&lt;/Paragraph&gt;
   &lt;Paragraph /&gt;
   &lt;Paragraph TextIndent="0" FontFamily="verdana" FontSize="16" Margin="0"&gt;Paragraph 2&lt;/Paragraph&gt;

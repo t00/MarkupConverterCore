@@ -6,13 +6,15 @@ namespace MarkupConverter
 {
     public class HtmlToXamlContext
     {
+        public delegate void XamlOnWriteDelegate(XElement element, HtmlToXamlContext context, ref string value);
+
         public HtmlToXamlDocumentOptions Options { get; }
 
         public Func<HtmlXamlImage, XElement, HtmlToXamlContext, bool> OnProcessImage { get; set; }
 
         public Action<XElement, HtmlToXamlContext> OnElementAdded { get; set; }
 
-        public Action<XElement, string, HtmlToXamlContext> OnWriteText { get; set; }
+        public XamlOnWriteDelegate OnWriteText { get; set; }
 
         public HtmlToXamlContext(HtmlToXamlDocumentOptions options)
         {

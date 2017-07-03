@@ -9,11 +9,13 @@ namespace MarkupConverter
     {
         public delegate void HtmlWriteDelegate(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlContext context, string value);
 
+        public delegate void HtmlOnWriteDelegate(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlContext context, ref string value);
+
         public HtmlFromXamlDocumentOptions Options { get; }
 
         public HtmlWriteDelegate OnWriteCustomProperty;
 
-        public HtmlWriteDelegate OnWriteText { get; set; }
+        public HtmlOnWriteDelegate OnWriteText { get; set; }
 
         public HtmlWriteDelegate OnWriteElementStyle { get; set; }
 

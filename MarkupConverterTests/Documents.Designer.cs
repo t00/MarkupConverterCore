@@ -93,12 +93,12 @@ namespace MarkupConverterTests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;FlowDocument p1:space=&quot;preserve&quot; xmlns:p1=&quot;xml&quot; xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;&gt;
+        ///   Looks up a localized string similar to &lt;FlowDocument xml:space=&quot;preserve&quot; xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;&gt;
         ///  &lt;Paragraph TextIndent=&quot;0&quot; FontFamily=&quot;verdana&quot; FontSize=&quot;16&quot; Margin=&quot;0&quot;&gt;Paragraph 1&lt;/Paragraph&gt;
         ///  &lt;Paragraph /&gt;
         ///  &lt;Paragraph TextIndent=&quot;0&quot; FontFamily=&quot;verdana&quot; FontSize=&quot;16&quot; Margin=&quot;0&quot;&gt;Paragraph 2&lt;/Paragraph&gt;
         ///  &lt;Paragraph TextIndent=&quot;-22&quot; FontFamily=&quot;verdana&quot; FontSize=&quot;16&quot; Margin=&quot;38,0,0,0&quot;&gt;Test &lt;Run&gt;capacitor&lt;/Run&gt; inductor&lt;/Paragraph&gt;
-        ///  &lt;Paragraph TextIndent=&quot;-22&quot; FontFamily=&quot;verdana [rest of string was truncated]&quot;;.
+        ///  &lt;Paragraph TextIndent=&quot;-22&quot; FontFamily=&quot;verdana&quot; FontSize=&quot;16 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string TestParagraph_XamlFromHtml {
             get {
