@@ -88,7 +88,7 @@ namespace MarkupConverter
             MimeType = null;
         }
 
-        public string Description { get; set; }
+        public string Alt { get; set; }
 
         public string FileName { get; set; }
 

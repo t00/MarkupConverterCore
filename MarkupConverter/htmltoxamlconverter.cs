@@ -781,7 +781,7 @@ namespace MarkupConverter
             string alt;
             if (currentProperties.TryGetValue("alt", out alt))
             {
-                image.Description = alt;
+                image.Alt = alt;
             }
             string src;
             if (currentProperties.TryGetValue("src", out src) && !string.IsNullOrEmpty(src))
