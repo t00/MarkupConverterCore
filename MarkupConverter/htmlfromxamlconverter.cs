@@ -422,9 +422,12 @@ namespace MarkupConverter
 			{
 				if(htmlWriter != null && !elementContentStarted && inlineStyle.Length > 0)
 				{
-					// Output STYLE attribute and clear inlineStyle buffer.
-						htmlWriter.WriteAttributeString("style", inlineStyle.ToString());
-					inlineStyle.Remove(0, inlineStyle.Length);
+                    // Output STYLE attribute (if still on element) and clear inlineStyle buffer
+                    if (htmlWriter.WriteState == WriteState.Element)
+                    {
+                        htmlWriter.WriteAttributeString("style", inlineStyle.ToString());
+                    }
+                    inlineStyle.Remove(0, inlineStyle.Length);
 				}
 				elementContentStarted = true;
 			}
