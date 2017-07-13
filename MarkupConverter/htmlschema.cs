@@ -8,9 +8,12 @@
 //
 //---------------------------------------------------------------------------
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
+using System.Text;
 
 namespace MarkupConverter
 {
@@ -57,6 +60,51 @@ namespace MarkupConverter
         }
 
         #endregion Constructors;
+
+        public static string HtmlEntitiesEncode(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return input;
+            }
+            var chArray1 = _htmlEntitiesArray.Value;
+            var outputStringBuilder = new StringBuilder((int)(input.Length * 1.1));
+            var utf16StringReader = new Utf16StringReader(input);
+            while (true)
+            {
+                var index = utf16StringReader.ReadNextScalarValue();
+                if(index >= 0)
+                {
+                    if(index > ushort.MaxValue)
+                    {
+                        outputStringBuilder.Append('&');
+                        outputStringBuilder.Append('#');
+                        outputStringBuilder.Append(index.ToString(CultureInfo.InvariantCulture));
+                        outputStringBuilder.Append(';');
+                    }
+                    else
+                    {
+                        var input1 = (char) index;
+                        var entity = chArray1[index];
+                        if(entity != null)
+                        {
+                            outputStringBuilder.Append('&');
+                            outputStringBuilder.Append(entity);
+                            outputStringBuilder.Append(';');
+                        }
+                        else
+                        {
+                            outputStringBuilder.Append(input1);
+                        }
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+            return outputStringBuilder.ToString();
+        }
 
         // ---------------------------------------------------------------------
         //
@@ -453,7 +501,7 @@ namespace MarkupConverter
         }
 
         /// <summary>
-        /// initializes _htmlCharacterEntities IDictionary<string, string> with the character corresponding to entity names
+        /// initializes _htmlCharacterEntities IDictionary<string, char> with the character corresponding to entity names
         /// </summary>
         private static void InitializeHtmlCharacterEntities()
         {
@@ -708,6 +756,16 @@ namespace MarkupConverter
             _htmlCharacterEntities["zwnj"] = (char)8204;
         }
 
+        private static char[][] CreateEntitiesArray()
+        {
+            var unicodeArray = new char[65536][];
+            foreach(var entity in _htmlCharacterEntities)
+            {
+                unicodeArray[entity.Value] = entity.Key.ToCharArray();
+            }
+            return unicodeArray;
+        }
+
         #endregion Private Methods
 
         // ---------------------------------------------------------------------
@@ -766,6 +824,8 @@ namespace MarkupConverter
 
         // html character entities IDictionary<string, string>
         private static IDictionary<string, char> _htmlCharacterEntities;
+
+        private static readonly Lazy<char[][]> _htmlEntitiesArray = new Lazy<char[][]>(CreateEntitiesArray);
 
         #endregion Private Fields
     }
