@@ -79,8 +79,7 @@ namespace MarkupConverter
 
             // Create an XDocument for generated xaml
             var xamlTree = new XDocument();
-            var spacePreserve = new XAttribute(XNamespace.Xml + "space", "preserve");
-            var xamlFlowDocumentElement = new XElement(XName.Get(rootElementName, XamlNamespace), spacePreserve);
+            var xamlFlowDocumentElement = new XElement(XName.Get(rootElementName, XamlNamespace));
             
             // Destination context is a stack of generated Xaml elements
             context.DestinationContext = new List<XElement>(10);
