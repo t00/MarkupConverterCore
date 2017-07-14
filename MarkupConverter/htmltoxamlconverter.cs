@@ -15,6 +15,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Xml.Linq;
 using System.Linq;
+using System.Text;
+using System.IO;
 
 namespace MarkupConverter
 {
@@ -53,8 +55,23 @@ namespace MarkupConverter
         public static string ConvertHtmlToXaml(string htmlString, HtmlToXamlContext context)
         {
             var xamlTree = ConvertHtmlToXamlDocument(htmlString, context);
-            var xaml = xamlTree.ToString();
-            return xaml;
+            return WriteXamlString(xamlTree);
+        }
+
+        public static string WriteXamlString(XDocument xamlDocument)
+        {
+            var builder = new StringBuilder();
+            using (TextWriter writer = new StringWriter(builder))
+            {
+                xamlDocument.Save(writer, SaveOptions.DisableFormatting);
+                var xaml = builder.ToString();
+                var fdIndex = xaml.IndexOf("<FlowDocument");
+                if(fdIndex > 0)
+                {
+                    xaml = xaml.Substring(fdIndex);
+                }
+                return xaml;
+            }
         }
 
         /// <summary>
@@ -79,7 +96,8 @@ namespace MarkupConverter
 
             // Create an XDocument for generated xaml
             var xamlTree = new XDocument();
-            var xamlFlowDocumentElement = new XElement(XName.Get(rootElementName, XamlNamespace));
+            var spacePreserve = new XAttribute(XNamespace.Xml + "space", "preserve");
+            var xamlFlowDocumentElement = new XElement(XName.Get(rootElementName, XamlNamespace), spacePreserve);
             
             // Destination context is a stack of generated Xaml elements
             context.DestinationContext = new List<XElement>(10);
@@ -2410,6 +2428,10 @@ namespace MarkupConverter
 
         private static void SetColor(XElement xamlElement, string propertyName, string stringValue)
         {
+            if(stringValue?.StartsWith("#") == true && stringValue.Length < 9)
+            {
+                stringValue = stringValue.Replace("#", "#ff");
+            }
             xamlElement.SetAttributeValue(propertyName, stringValue);
         }
 
