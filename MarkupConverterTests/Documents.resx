@@ -121,7 +121,7 @@
     <value>&lt;html&gt;&lt;body&gt;{0}&lt;/body&gt;&lt;/html&gt;</value>
   </data>
   <data name="MultipleFontStyles_HtmlFromXaml" xml:space="preserve">
-    <value>&lt;p&gt;&lt;span style="font-style:italic;font-weight:bold;text-decoration:line-through;text-decoration:underline;"&gt;word1 &lt;/span&gt;word2&lt;/p&gt;</value>
+    <value>&lt;p&gt;&lt;span style="font-style:italic;font-weight:bold;text-decoration:line-through underline;"&gt;word1 &lt;/span&gt;word2&lt;/p&gt;</value>
   </data>
   <data name="MultipleFontStyles_Xaml" xml:space="preserve">
     <value>&lt;FlowDocument xml:space="preserve" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;&lt;Paragraph&gt;&lt;Run FontStyle="Italic" FontWeight="Bold" xml:space="preserve"&gt;&lt;Run.TextDecorations&gt;&lt;TextDecoration Location="Strikethrough" /&gt;&lt;TextDecoration Location="Underline" /&gt;&lt;/Run.TextDecorations&gt;word1 &lt;/Run&gt;word2&lt;/Paragraph&gt;&lt;/FlowDocument&gt;</value>

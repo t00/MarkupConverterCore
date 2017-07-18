@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Xml;
 
@@ -525,6 +526,7 @@ namespace MarkupConverter
 			if(xamlReader.Name.EndsWith(".TextDecorations"))
 			{
 				var level = 1;
+                var decorations = new List<string>();
 				while(ReadNextToken(xamlReader))
 				{
 					if(xamlReader.NodeType == XmlNodeType.Element)
@@ -539,11 +541,11 @@ namespace MarkupConverter
 							{
 								if(xamlReader.Value == "Strikethrough")
 								{
-									(inlineStyle ?? (inlineStyle = new StringBuilder())).Append("text-decoration:line-through;");
+                                    decorations.Add("line-through");
 								}
 								else if(xamlReader.Value == "Underline")
 								{
-									(inlineStyle ?? (inlineStyle = new StringBuilder())).Append("text-decoration:underline;");
+                                    decorations.Add("underline");
 								}
 							}
 						}
@@ -554,6 +556,10 @@ namespace MarkupConverter
 					}
 					if(level <= 0)
 					{
+                        if(decorations.Any())
+                        {
+                            inlineStyle.Append($"text-decoration:{string.Join(" ", decorations)};");
+                        }
                         break;
                     }
                 }

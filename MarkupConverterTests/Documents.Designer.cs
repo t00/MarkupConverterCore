@@ -71,7 +71,7 @@ namespace MarkupConverterTests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;p&gt;&lt;span style=&quot;font-style:italic;font-weight:bold;text-decoration:line-through;text-decoration:underline;&quot;&gt;word1 &lt;/span&gt;word2&lt;/p&gt;.
+        ///   Looks up a localized string similar to &lt;p&gt;&lt;span style=&quot;font-style:italic;font-weight:bold;text-decoration:line-through underline;&quot;&gt;word1 &lt;/span&gt;word2&lt;/p&gt;.
         /// </summary>
         internal static string MultipleFontStyles_HtmlFromXaml {
             get {
