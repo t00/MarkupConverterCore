@@ -21,5 +21,13 @@ namespace MarkupConverterTests
             var html = HtmlFromXamlConverter.ConvertXamlToHtml(xaml, new HtmlFromXamlContext(new HtmlFromXamlDocumentOptions { OuterElement = "", InnerElement = "span" }));
             Assert.AreEqual($"<span>{Documents.TestParagraph_Html}</span>", html);
         }
+
+        [TestMethod]
+        public void TestMultipleStyles()
+        {
+            var xaml = Documents.MultipleFontStyles_Xaml;
+            var html = HtmlFromXamlConverter.ConvertXamlToHtml(xaml, new HtmlFromXamlContext(new HtmlFromXamlDocumentOptions()));
+            Assert.AreEqual(string.Format(Documents.FullHtml_Format, Documents.MultipleFontStyles_HtmlFromXaml), html);
+        }
     }
 }

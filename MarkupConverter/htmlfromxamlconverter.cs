@@ -173,7 +173,7 @@ namespace MarkupConverter
 			var elementName = xamlReader.LocalName;
 
 			// Clear string builder for the inline style
-			inlineStyle.Remove(0, inlineStyle.Length);
+			inlineStyle.Clear();
 
 			bool borderSet = false;
 			bool borderColorSet = false;
@@ -427,62 +427,75 @@ namespace MarkupConverter
                     {
                         htmlWriter.WriteAttributeString("style", inlineStyle.ToString());
                     }
-                    inlineStyle.Remove(0, inlineStyle.Length);
+                    inlineStyle.Clear();
 				}
 				elementContentStarted = true;
 			}
 			else
-			{
-				while(ReadNextToken(xamlReader) && xamlReader.NodeType != XmlNodeType.EndElement)
-				{
-					switch(xamlReader.NodeType)
-					{
-						case XmlNodeType.Element:
-							if(!HandleComplexProperty(xamlReader, htmlWriter, inlineStyle, context))
-							{
-								if(htmlWriter != null && !elementContentStarted && inlineStyle.Length > 0)
-								{
-									// Output STYLE attribute and clear inlineStyle buffer.
-									htmlWriter.WriteAttributeString("style", inlineStyle.ToString());
-									inlineStyle.Remove(0, inlineStyle.Length);
-								}
-								elementContentStarted = true;
-								WriteElement(xamlReader, htmlWriter, inlineStyle, context);
-							}
-							Debug.Assert(xamlReader.NodeType == XmlNodeType.EndElement || xamlReader.NodeType == XmlNodeType.Element && xamlReader.IsEmptyElement);
-							break;
-						case XmlNodeType.Comment:
-							if(htmlWriter != null)
-							{
-								if(!elementContentStarted && inlineStyle.Length > 0)
-								{
-                                    htmlWriter.WriteAttributeString("style", inlineStyle.ToString());
-								}
-								htmlWriter.WriteComment(xamlReader.Value);
-							}
-							elementContentStarted = true;
-							break;
-						case XmlNodeType.CDATA:
-						case XmlNodeType.Text:
-						case XmlNodeType.SignificantWhitespace:
-							if(htmlWriter != null)
-							{
-								if(!elementContentStarted && inlineStyle.Length > 0)
-								{
-									htmlWriter.WriteAttributeString("style", inlineStyle.ToString());
-								}
-                                var text = xamlReader.Value;
-							    context.OnWriteText?.Invoke(xamlReader, htmlWriter, inlineStyle, context, ref text);
-                                htmlWriter.WriteString(text);
+            {
+                WriteElementInnerContent(xamlReader, htmlWriter, inlineStyle, context, ref elementContentStarted);
+
+                Debug.Assert(xamlReader.NodeType == XmlNodeType.EndElement);
+            }
+        }
+
+        private static void WriteElementInnerContent(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlContext context, ref bool elementContentStarted)
+        {
+            while (ReadNextToken(xamlReader) && xamlReader.NodeType != XmlNodeType.EndElement)
+            {
+                switch (xamlReader.NodeType)
+                {
+                    case XmlNodeType.Element:
+                        if(!HandleComplexProperty(xamlReader, htmlWriter, inlineStyle, context))
+                        {
+                            if (htmlWriter != null && !elementContentStarted && inlineStyle.Length > 0)
+                            {
+                                // Output STYLE attribute and clear inlineStyle buffer.
+                                htmlWriter.WriteAttributeString("style", inlineStyle.ToString());
+                                inlineStyle.Clear();
                             }
                             elementContentStarted = true;
-							break;
-					}
-				}
-
-				Debug.Assert(xamlReader.NodeType == XmlNodeType.EndElement);
-			}
-		}
+                            if (xamlReader.NodeType == XmlNodeType.Element)
+                            {
+                                WriteElement(xamlReader, htmlWriter, inlineStyle, context);
+                            }
+                            else
+                            {
+                                WriteElementInnerContent(xamlReader, htmlWriter, inlineStyle, context, ref elementContentStarted);
+                                return;
+                            }
+                        }
+                        Debug.Assert(xamlReader.NodeType == XmlNodeType.EndElement || xamlReader.NodeType == XmlNodeType.Element && xamlReader.IsEmptyElement);
+                        break;
+                    case XmlNodeType.Comment:
+                        if (htmlWriter != null)
+                        {
+                            if (!elementContentStarted && inlineStyle.Length > 0)
+                            {
+                                htmlWriter.WriteAttributeString("style", inlineStyle.ToString());
+                            }
+                            htmlWriter.WriteComment(xamlReader.Value);
+                        }
+                        elementContentStarted = true;
+                        break;
+                    case XmlNodeType.CDATA:
+                    case XmlNodeType.Text:
+                    case XmlNodeType.SignificantWhitespace:
+                        if (htmlWriter != null)
+                        {
+                            if (!elementContentStarted && inlineStyle.Length > 0)
+                            {
+                                htmlWriter.WriteAttributeString("style", inlineStyle.ToString());
+                            }
+                            var text = xamlReader.Value;
+                            context.OnWriteText?.Invoke(xamlReader, htmlWriter, inlineStyle, context, ref text);
+                            htmlWriter.WriteString(text);
+                        }
+                        elementContentStarted = true;
+                        break;
+                }
+            }
+        }
 
         /// <summary>
         /// Conberts an element notation of complex property into
@@ -503,19 +516,23 @@ namespace MarkupConverter
 		{
 			Debug.Assert(xamlReader.NodeType == XmlNodeType.Element);
 
-			if(!xamlReader.Name.Contains(".") || xamlReader.Name == "Table.Columns")
+            // ship Table.Columns (unhandled)
+            if (!xamlReader.Name.Contains(".") || xamlReader.Name == "Table.Columns")
 			{
 				return false;
 			}
 
 			if(xamlReader.Name.EndsWith(".TextDecorations"))
 			{
-				var l = 0;
+				var level = 1;
 				while(ReadNextToken(xamlReader))
 				{
 					if(xamlReader.NodeType == XmlNodeType.Element)
 					{
-						l++;
+                        if (!xamlReader.IsEmptyElement)
+                        {
+                            level++;
+                        }
 						if(xamlReader.Name == "TextDecoration")
 						{
 							if(xamlReader.HasAttributes && xamlReader.MoveToAttribute("Location"))
@@ -533,21 +550,22 @@ namespace MarkupConverter
 					}
 					else if(xamlReader.NodeType == XmlNodeType.EndElement)
 					{
-						l--;
+						level--;
 					}
-					if(l <= 0)
+					if(level <= 0)
 					{
-						break;
-					}
-				}
-			}
+                        break;
+                    }
+                }
+                return false;
+            }
 			else
 			{
-				// Skip the element representing the complex property
+				// Skip the element representing the unhandled complex property
 				WriteElementContent(xamlReader, /*htmlWriter:*/null, /*inlineStyle:*/null, context);
-			}
-			return true;
-		}
+                return true;
+            }
+        }
 
         /// <summary>
         /// Converts a xaml element into an appropriate html element.
