@@ -1,5 +1,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MarkupConverter;
+using System;
+using System.Text;
+using System.Xml;
+using System.Collections.Generic;
 
 namespace MarkupConverterTests
 {
@@ -29,5 +33,24 @@ namespace MarkupConverterTests
             var html = HtmlFromXamlConverter.ConvertXamlToHtml(xaml, new HtmlFromXamlContext(new HtmlFromXamlDocumentOptions()));
             Assert.AreEqual(string.Format(Documents.FullHtml_Format, Documents.MultipleFontStyles_HtmlFromXaml), html);
         }
+
+        [TestMethod]
+        public void TestMultipleStylesToPlain()
+        {
+            var xaml = Documents.MultipleFontStyles_Xaml;
+            var context = new HtmlFromXamlContext(new HtmlFromXamlDocumentOptions());
+            texts.Clear();
+            context.OnWriteText = ReadText;
+            var html = HtmlFromXamlConverter.ConvertXamlToHtml(xaml, context);
+            var expectedList = new List<string> { "word1 ", "word2" };
+            CollectionAssert.AreEqual(expectedList, texts);
+        }
+
+        private void ReadText(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlContext context, ref string value)
+        {
+            texts.Add(value);
+        }
+
+        private List<string> texts = new List<string>();
     }
 }
