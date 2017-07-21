@@ -300,7 +300,12 @@ namespace MarkupConverter
                             break;
 					}
 
-					if(css != null)
+                    if(context.OnWriteElementAttribute != null)
+                    {
+                        css = context.OnWriteElementAttribute(elementName, xamlReader.Name, xamlReader.Value, css);
+                    }
+                    
+                    if (css != null)
 					{
 						inlineStyle.Append(css);
 					}

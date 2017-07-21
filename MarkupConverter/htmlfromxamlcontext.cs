@@ -11,6 +11,8 @@ namespace MarkupConverter
 
         public delegate void HtmlOnWriteDelegate(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlContext context, ref string value);
 
+        public delegate string HtmlOnWriteAttributeDelegate(string elementName, string attributeName, string attributeValue, string htmlValue);
+
         public HtmlFromXamlDocumentOptions Options { get; }
 
         public HtmlWriteDelegate OnWriteCustomProperty;
@@ -18,6 +20,8 @@ namespace MarkupConverter
         public HtmlOnWriteDelegate OnWriteText { get; set; }
 
         public HtmlWriteDelegate OnWriteElementStyle { get; set; }
+
+        public HtmlOnWriteAttributeDelegate OnWriteElementAttribute { get; set; }
 
         public Func<string, string> OnGetHtmlElementName { get; set; }
 
