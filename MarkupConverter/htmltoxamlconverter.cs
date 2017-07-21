@@ -424,8 +424,16 @@ namespace MarkupConverter
                 PushDestination(xamlElement, context);
                 ApplyLocalProperties(xamlElement, localProperties, /*isBlock:*/true, context);
 
+                // this element is a single child of the parent element which is also a section or flow document
+                // we can flatten the hierarchy and apply style to the parent element
+                if (htmlElement.Parent?.Elements().Count() == 1 && (xamlParentElement.Name.LocalName == Xaml_Section || xamlParentElement.Name.LocalName == Xaml_FlowDocument))
+                {
+                    ApplyLocalProperties(xamlParentElement, localProperties, /*isBlock:*/true, context);
+                    CheckPop(context.DestinationContext, xamlElement);
+                    xamlElement = xamlParentElement;
+                }
                 // Decide whether we can unwrap this element as not having any formatting significance.
-                if (!xamlElement.HasAttributes)
+                else if (!xamlElement.HasAttributes)
                 {
                     // This elements is a group of block elements whitout any additional formatting.
                     // We can add blocks directly to xamlParentElement and avoid
