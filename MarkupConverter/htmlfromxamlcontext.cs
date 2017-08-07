@@ -30,7 +30,7 @@ namespace MarkupConverter
             Options = options;
         }
 
-        public IReadOnlyList<HtmlFromXamlTableInfo> Tables => (tables ?? (tables = new List<HtmlFromXamlTableInfo>())).AsReadOnly();
+        public IReadOnlyList<HtmlFromXamlTableInfo> Tables => tables.AsReadOnly();
 
         public HtmlFromXamlTableInfo CurrentTable => (tableIndex >= 0 && tableIndex < Tables.Count) ? Tables[tableIndex] : null;
 
@@ -48,7 +48,7 @@ namespace MarkupConverter
             return CurrentTable;
         }
 
-        private List<HtmlFromXamlTableInfo> tables;
+        private List<HtmlFromXamlTableInfo> tables = new List<HtmlFromXamlTableInfo>();
         private int tableIndex;
     }
 }

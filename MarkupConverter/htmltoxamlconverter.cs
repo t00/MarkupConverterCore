@@ -1271,6 +1271,8 @@ namespace MarkupConverter
         /// <param name="context">Conversion context</param>
         private static void AddTableColumnGroup(XElement xamlTableElement, XElement htmlColgroupElement, IDictionary<string, string> inheritedProperties, HtmlToXamlContext context)
         {
+            context.SourceContext.Add(htmlColgroupElement);
+
             IDictionary<string, string> localProperties;
             IDictionary<string, string> currentProperties = GetElementProperties(htmlColgroupElement, inheritedProperties, out localProperties, context);
 
@@ -1284,6 +1286,7 @@ namespace MarkupConverter
                     AddTableColumn(xamlTableElement, htmlNode, currentProperties, context);
                 }
             }
+            CheckPop(context.SourceContext, htmlColgroupElement);
         }
 
         /// <summary>
@@ -1300,15 +1303,21 @@ namespace MarkupConverter
         /// <param name="context">Conversion context</param>
         private static void AddTableColumn(XElement xamlTableElement, XElement htmlColElement, IDictionary<string, string> inheritedProperties, HtmlToXamlContext context)
         {
-            IDictionary<string, string> localProperties;
-            IDictionary<string, string> currentProperties = GetElementProperties(htmlColElement, inheritedProperties, out localProperties, context);
+            context.SourceContext.Add(htmlColElement);
 
             XElement xamlTableColumnElement = new XElement(XName.Get(Xaml_TableColumn, XamlNamespace));
+            context.DestinationContext.Add(xamlTableColumnElement);
+
+            IDictionary<string, string> localProperties;
+            IDictionary<string, string> currentProperties = GetElementProperties(htmlColElement, inheritedProperties, out localProperties, context);
 
             // TODO: process local properties for TableColumn element
 
             // Col is an empty element, with no subtree 
             xamlTableElement.Add(xamlTableColumnElement);
+
+            CheckPop(context.DestinationContext, xamlTableColumnElement);
+            CheckPop(context.SourceContext, htmlColElement);
         }
 
         /// <summary>
