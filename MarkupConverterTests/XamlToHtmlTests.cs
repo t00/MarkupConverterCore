@@ -46,6 +46,14 @@ namespace MarkupConverterTests
             CollectionAssert.AreEqual(expectedList, texts);
         }
 
+        [TestMethod]
+        public void TestTable()
+        {
+            var xaml = Documents.Table_Xaml;
+            var html = HtmlFromXamlConverter.ConvertXamlToHtml(xaml, new HtmlFromXamlContext(new HtmlFromXamlDocumentOptions()));
+            Assert.AreEqual(Documents.Table_HtmlFromXaml, html);
+        }
+
         private void ReadText(XmlReader xamlReader, XmlWriter htmlWriter, StringBuilder inlineStyle, HtmlFromXamlContext context, ref string value)
         {
             texts.Add(value);

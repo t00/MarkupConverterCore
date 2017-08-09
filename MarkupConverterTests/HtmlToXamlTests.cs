@@ -13,5 +13,13 @@ namespace MarkupConverterTests
             var xaml = HtmlToXamlConverter.ConvertHtmlToXaml(html, new HtmlToXamlContext(new HtmlToXamlDocumentOptions()));
             Assert.AreEqual(Documents.TestParagraph_XamlFromHtml, xaml);
         }
+
+        [TestMethod]
+        public void TestTable()
+        {
+            var html = Documents.Table_Html;
+            var xaml = HtmlToXamlConverter.ConvertHtmlToXaml(html, new HtmlToXamlContext(new HtmlToXamlDocumentOptions()));
+            Assert.AreEqual(Documents.Table_XamlFromHtml, xaml);
+        }
     }
 }

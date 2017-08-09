@@ -295,6 +295,12 @@ namespace MarkupConverter
 						case "RowSpan":
 							htmlWriter.WriteAttributeString("ROWSPAN", xamlReader.Value);
 							break;
+                        case "CellSpacing":
+                            if(xamlReader.Value == "0")
+                            {
+                                css = "border-collapse:collapse;";
+                            }
+                            break;
                         default:
                             context.OnWriteCustomProperty?.Invoke(xamlReader, htmlWriter, inlineStyle, context, xamlReader.Name);
                             break;
@@ -318,7 +324,6 @@ namespace MarkupConverter
 
 			if(elementName == "Table")
 			{
-				inlineStyle.Append("border-collapse:collapse;");
 				if(!borderSet && context.CurrentTable != null)
 				{
 					var t = context.CurrentTable.CommonBorder;

@@ -9,7 +9,6 @@
 //---------------------------------------------------------------------------
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -146,11 +145,9 @@ namespace MarkupConverter
         /// <returns></returns>
         public static string GetAttribute(XElement element, string attributeName)
         {
-            attributeName = attributeName.ToLower();
-
             foreach (var attribute in element.Attributes())
             {
-                if (attribute.Name.LocalName.ToLower() == attributeName)
+                if (attribute.Name.TagEquals(attributeName))
                 {
                     return attribute.Value;
                 }
@@ -397,8 +394,7 @@ namespace MarkupConverter
             {
                 if (htmlChildNode is XElement)
                 {
-                    string htmlChildName = ((XElement)htmlChildNode).Name.LocalName.ToLower();
-                    if (HtmlSchema.IsBlockElement(htmlChildName))
+                    if (HtmlSchema.IsBlockElement(((XElement)htmlChildNode).Name.LocalName))
                     {
                         htmlElementContainsBlocks = true;
                         break;
@@ -530,8 +526,7 @@ namespace MarkupConverter
                 }
                 else if (htmlNode is XElement)
                 {
-                    string htmlChildName = ((XElement)htmlNode).Name.LocalName.ToLower();
-                    if (HtmlSchema.IsBlockElement(htmlChildName))
+                    if (HtmlSchema.IsBlockElement(((XElement)htmlNode).Name.LocalName))
                     {
                         // The sequence of non-blocked inlines ended. Stop implicit loop here.
                         break;
@@ -633,7 +628,7 @@ namespace MarkupConverter
                 {
                     string htmlChildName = ((XElement)htmlNode).Name.LocalName.ToLower();
                     if (HtmlSchema.IsInlineElement(htmlChildName) || HtmlSchema.IsBlockElement(htmlChildName) ||
-                        htmlChildName == "img" || htmlChildName == "br" || htmlChildName == "hr")
+                        ((XElement)htmlNode).Name.TagEquals("img", "br", "hr"))
                     {
                         elementHasChildren = true;
                         break;
@@ -863,8 +858,6 @@ namespace MarkupConverter
         /// <param name="context">Conversion context</param>
         private static void AddList(XElement xamlParentElement, XElement htmlListElement, IDictionary<string, string> inheritedProperties, HtmlToXamlContext context)
         {
-            string htmlListElementName = htmlListElement.Name.LocalName.ToLower();
-
             IDictionary<string, string> localProperties;
             IDictionary<string, string> currentProperties = GetElementProperties(htmlListElement, inheritedProperties, out localProperties, context);
 
@@ -873,7 +866,7 @@ namespace MarkupConverter
             PushDestination(xamlListElement, context);
 
             // Set default list markers
-            if (htmlListElementName == "ol")
+            if (htmlListElement.Name.TagEquals("ol"))
             {
                 // Ordered list
                 xamlListElement.SetAttributeValue(Xaml_List_MarkerStyle, Xaml_List_MarkerStyle_Decimal);
@@ -891,7 +884,7 @@ namespace MarkupConverter
             // Recurse into list subtree
             foreach (var htmlChildNode in htmlListElement.Elements())
             {
-                if (htmlChildNode is XElement && htmlChildNode.Name.LocalName.ToLower() == "li")
+                if (htmlChildNode is XElement && htmlChildNode.Name.TagEquals("li"))
                 {
                     context.SourceContext.Add(htmlChildNode);
                     AddListItem(xamlListElement, htmlChildNode, currentProperties, context);
@@ -935,7 +928,7 @@ namespace MarkupConverter
         /// </returns>
         private static XElement AddOrphanListItems(XElement xamlParentElement, XElement htmlLIElement, IDictionary<string, string> inheritedProperties, HtmlToXamlContext context)
         {
-            Debug.Assert(htmlLIElement.Name.LocalName.ToLower() == "li");
+            Debug.Assert(htmlLIElement.Name.TagEquals("li"));
 
             XElement lastProcessedListItemElement = null;
 
@@ -992,7 +985,7 @@ namespace MarkupConverter
             Debug.Assert(xamlListElement != null);
             Debug.Assert(xamlListElement.Name.LocalName == Xaml_List);
             Debug.Assert(htmlLIElement != null);
-            Debug.Assert(htmlLIElement.Name.LocalName.ToLower() == "li");
+            Debug.Assert(htmlLIElement.Name.TagEquals("li"));
             Debug.Assert(inheritedProperties != null);
 
             IDictionary<string, string> localProperties;
@@ -1037,7 +1030,7 @@ namespace MarkupConverter
         private static void AddTable(XElement xamlParentElement, XElement htmlTableElement, IDictionary<string, string> inheritedProperties, HtmlToXamlContext context)
         {
             // Parameter validation
-            Debug.Assert(htmlTableElement.Name.LocalName.ToLower() == "table");
+            Debug.Assert(htmlTableElement.Name.TagEquals("table"));
             Debug.Assert(xamlParentElement != null);
             Debug.Assert(inheritedProperties != null);
 
@@ -1067,10 +1060,11 @@ namespace MarkupConverter
             {
                 // Create xamlTableElement
                 XElement xamlTableElement = new XElement(XName.Get(Xaml_Table, XamlNamespace));
+                ApplyLocalProperties(xamlTableElement, localProperties, false, context);
                 PushDestination(xamlTableElement, context);
 
                 // Analyze table structure for column widths and rowspan attributes
-                ArrayList columnStarts = AnalyzeTableStructure(htmlTableElement, context);
+                var columnStarts = AnalyzeTableStructure(htmlTableElement, context);
 
                 // Process COLGROUP & COL elements
                 AddColumnInformation(htmlTableElement, xamlTableElement, columnStarts, currentProperties, context);
@@ -1080,16 +1074,13 @@ namespace MarkupConverter
 
                 while (htmlChildNode != null)
                 {
-                    string htmlChildName = htmlChildNode.Name.LocalName.ToLower();
-
                     // Process the element
-                    if (htmlChildName == "tbody" || htmlChildName == "thead" || htmlChildName == "tfoot")
+                    if (htmlChildNode.Name.TagEquals("tbody", "thead", "tfoot"))
                     {
                         //  Add more special processing for TableHeader and TableFooter
                         XElement xamlTableBodyElement = new XElement(XName.Get(Xaml_TableRowGroup, XamlNamespace));
-                        xamlTableElement.Add(xamlTableBodyElement);
-
                         context.SourceContext.Add(htmlChildNode);
+                        context.DestinationContext.Add(xamlTableBodyElement);
 
                         // Get properties of Html tbody element
                         IDictionary<string, string> tbodyElementLocalProperties;
@@ -1104,11 +1095,12 @@ namespace MarkupConverter
                             // else: if there is no TRs in this TBody, we simply ignore it
                         }
 
+                        CheckPop(context.DestinationContext, xamlTableBodyElement);
                         CheckPop(context.SourceContext, htmlChildNode);
 
                         htmlChildNode = htmlChildNode.ElementsAfterSelf().FirstOrDefault();
                     }
-                    else if (htmlChildName == "tr")
+                    else if (htmlChildNode.Name.TagEquals("tr"))
                     {
                         // Tbody is not present, but tr element is present. Tr is wrapped in tbody
                         XElement xamlTableBodyElement = new XElement(XName.Get(Xaml_TableRowGroup, XamlNamespace));
@@ -1144,8 +1136,7 @@ namespace MarkupConverter
 
             foreach (var tableChild in htmlTableElement.Elements())
             {
-                string elementName = tableChild.Name.LocalName.ToLower();
-                if (elementName == "tbody" || elementName == "thead" || elementName == "tfoot")
+                if (tableChild.Name.TagEquals("tbody", "thead", "tfoot"))
                 {
                     if (singleCell != null)
                     {
@@ -1153,7 +1144,7 @@ namespace MarkupConverter
                     }
                     foreach (var tbodyChild in tableChild.Elements())
                     {
-                        if (tbodyChild.Name.LocalName.ToLower() == "tr")
+                        if (tbodyChild.Name.TagEquals("tr"))
                         {
                             if (singleCell != null)
                             {
@@ -1161,8 +1152,7 @@ namespace MarkupConverter
                             }
                             foreach (var trChild in tbodyChild.Elements())
                             {
-                                string cellName = trChild.Name.LocalName.ToLower();
-                                if (cellName == "td" || cellName == "th")
+                                if (trChild.Name.TagEquals("td", "th"))
                                 {
                                     if (singleCell != null)
                                     {
@@ -1174,7 +1164,7 @@ namespace MarkupConverter
                         }
                     }
                 }
-                else if (tableChild.Name.LocalName.ToLower() == "tr")
+                else if (tableChild.Name.TagEquals("tr"))
                 {
                     if (singleCell != null)
                     {
@@ -1182,8 +1172,7 @@ namespace MarkupConverter
                     }
                     foreach (var trChild in tableChild.Elements())
                     {
-                        string cellName = trChild.Name.LocalName.ToLower();
-                        if (cellName == "td" || cellName == "th")
+                        if (trChild.Name.TagEquals("td", "th"))
                         {
                             if (singleCell != null)
                             {
@@ -1215,8 +1204,10 @@ namespace MarkupConverter
         /// </param>
         /// <param name="currentProperties"></param>
         /// <param name="context">Conversion context</param>
-        private static void AddColumnInformation(XElement htmlTableElement, XElement xamlTableElement, ArrayList columnStartsAllRows, IDictionary<string, string> currentProperties, HtmlToXamlContext context)
+        private static void AddColumnInformation(XElement htmlTableElement, XElement xamlTableElement, IList<double> columnStartsAllRows, IDictionary<string, string> currentProperties, HtmlToXamlContext context)
         {
+            ICollection<XElement> columns = new List<XElement>();
+
             // Add column information
             if (columnStartsAllRows != null)
             {
@@ -1224,11 +1215,9 @@ namespace MarkupConverter
                 // The last element in columnStarts represents the end of the table
                 for (int columnIndex = 0; columnIndex < columnStartsAllRows.Count - 1; columnIndex++)
                 {
-                    XElement xamlColumnElement;
-
-                    xamlColumnElement = new XElement(XName.Get(Xaml_TableColumn, XamlNamespace));
-                    xamlColumnElement.SetAttributeValue(Xaml_Width, ((double)columnStartsAllRows[columnIndex + 1] - (double)columnStartsAllRows[columnIndex]).ToString());
-                    xamlTableElement.Add(xamlColumnElement);
+                    var xamlColumnElement = new XElement(XName.Get(Xaml_TableColumn, XamlNamespace));
+                    xamlColumnElement.SetAttributeValue(Xaml_Width, (columnStartsAllRows[columnIndex + 1] - columnStartsAllRows[columnIndex]).ToString(CultureInfo.InvariantCulture));
+                    columns.Add(xamlColumnElement);
                 }
             }
             else
@@ -1237,19 +1226,66 @@ namespace MarkupConverter
                 // Translate blindly colgroups from html.                
                 foreach (var htmlChildNode in htmlTableElement.Elements())
                 {
-                    if (htmlChildNode.Name.LocalName.ToLower() == "colgroup")
+                    if (htmlChildNode.Name.TagEquals("colgroup"))
                     {
-                        // TODO: add column width information to this function as a parameter and process it
-                        AddTableColumnGroup(xamlTableElement, htmlChildNode, currentProperties, context);
+                        context.SourceContext.Add(htmlChildNode);
+                        foreach(var column in GetTableColumnGroupColumns(htmlChildNode, currentProperties, context))
+                        {
+                            columns.Add(column);
+                        }
+                        CheckPop(context.SourceContext, htmlChildNode);
                     }
-                    else if (htmlChildNode.Name.LocalName.ToLower() == "col")
+                    else if (htmlChildNode.Name.TagEquals("col"))
                     {
-                        AddTableColumn(xamlTableElement, htmlChildNode, currentProperties, context);
+                        columns.Add(CreateTableColumn(htmlChildNode, currentProperties, context));
                     }
                     else
                     {
                         // Some element which belongs to table body. Stop column loop.
                         break;
+                    }
+                }
+            }
+
+            if(columns.Any())
+            {
+                var xamlColumnsElement = new XElement(XName.Get(Xaml_TableColumns, XamlNamespace));
+                xamlTableElement.Add(xamlColumnsElement);
+
+                CheckCorrectColumnWidths(htmlTableElement, columns);
+
+                foreach (var column in columns)
+                {
+                    xamlColumnsElement.Add(column);
+                }
+            }
+        }
+
+        private static void CheckCorrectColumnWidths(XElement htmlTableElement, ICollection<XElement> columns)
+        {
+            var tableWidth = GetColumnWidth(htmlTableElement);
+            if (tableWidth > 0.0)
+            {
+                var columnsWidth = 0.0;
+                foreach (var column in columns)
+                {
+                    var widthAttribute = column.Attribute(Xaml_Width);
+                    if (widthAttribute == null)
+                    {
+                        // not all columns have width set
+                        columnsWidth = 0.0;
+                        break;
+                    }
+                    columnsWidth += double.Parse(widthAttribute.Value, CultureInfo.InvariantCulture);
+                }
+                if (columnsWidth > 0.0)
+                {
+                    var widthRatio = tableWidth / columnsWidth;
+                    foreach (var column in columns)
+                    {
+                        var widthAttribute = column.Attribute(Xaml_Width);
+                        var columnWidth = double.Parse(widthAttribute.Value) * widthRatio;
+                        column.SetAttributeValue(Xaml_Width, columnWidth.ToString(CultureInfo.InvariantCulture));
                     }
                 }
             }
@@ -1259,9 +1295,6 @@ namespace MarkupConverter
         /// Converts htmlColgroupElement into Xaml TableColumnGroup element, and appends it to the parent
         /// xamlTableElement
         /// </summary>
-        /// <param name="xamlTableElement">
-        /// XElement representing Xaml Table element to which the converted column group should be added
-        /// </param>
         /// <param name="htmlColgroupElement">
         /// XElement representing Html colgroup element to be converted
         /// </param>
@@ -1269,31 +1302,26 @@ namespace MarkupConverter
         /// Properties inherited from parent context
         /// </param>
         /// <param name="context">Conversion context</param>
-        private static void AddTableColumnGroup(XElement xamlTableElement, XElement htmlColgroupElement, IDictionary<string, string> inheritedProperties, HtmlToXamlContext context)
+        private static IEnumerable<XElement> GetTableColumnGroupColumns(XElement htmlColgroupElement, IDictionary<string, string> inheritedProperties, HtmlToXamlContext context)
         {
-            context.SourceContext.Add(htmlColgroupElement);
-
             IDictionary<string, string> localProperties;
             IDictionary<string, string> currentProperties = GetElementProperties(htmlColgroupElement, inheritedProperties, out localProperties, context);
-
-            // TODO: process local properties for colgroup
 
             // Process children of colgroup. Colgroup may contain only col elements.
             foreach (var htmlNode in htmlColgroupElement.Elements())
             {
-                if (htmlNode.Name.LocalName.ToLower() == "col")
+                if (htmlNode.Name.TagEquals("col"))
                 {
-                    AddTableColumn(xamlTableElement, htmlNode, currentProperties, context);
+                    yield return CreateTableColumn(htmlNode, currentProperties, context);
                 }
             }
-            CheckPop(context.SourceContext, htmlColgroupElement);
         }
 
         /// <summary>
         /// Converts htmlColElement into Xaml TableColumn element, and appends it to the parent
         /// xamlTableColumnGroupElement
         /// </summary>
-        /// <param name="xamlTableElement"></param>
+        /// <param name="xamlColumnsElement"></param>
         /// <param name="htmlColElement">
         /// XElement representing Html col element to be converted
         /// </param>
@@ -1301,23 +1329,24 @@ namespace MarkupConverter
         /// properties inherited from parent context
         /// </param>
         /// <param name="context">Conversion context</param>
-        private static void AddTableColumn(XElement xamlTableElement, XElement htmlColElement, IDictionary<string, string> inheritedProperties, HtmlToXamlContext context)
+        private static XElement CreateTableColumn(XElement htmlColElement, IDictionary<string, string> inheritedProperties, HtmlToXamlContext context)
         {
             context.SourceContext.Add(htmlColElement);
 
             XElement xamlTableColumnElement = new XElement(XName.Get(Xaml_TableColumn, XamlNamespace));
             context.DestinationContext.Add(xamlTableColumnElement);
 
-            IDictionary<string, string> localProperties;
-            IDictionary<string, string> currentProperties = GetElementProperties(htmlColElement, inheritedProperties, out localProperties, context);
-
-            // TODO: process local properties for TableColumn element
-
-            // Col is an empty element, with no subtree 
-            xamlTableElement.Add(xamlTableColumnElement);
+            var width = GetColumnWidth(htmlColElement);
+            if (width >= 0.0)
+            {
+                xamlTableColumnElement.SetAttributeValue(Xaml_Width, width.ToString(CultureInfo.InvariantCulture));
+            }
 
             CheckPop(context.DestinationContext, xamlTableColumnElement);
             CheckPop(context.SourceContext, htmlColElement);
+
+            // Col is an empty element, with no subtree 
+            return xamlTableColumnElement;
         }
 
         /// <summary>
@@ -1339,7 +1368,7 @@ namespace MarkupConverter
         /// <returns>
         /// XNode representing the current position of the iterator among tr elements
         /// </returns>
-        private static XElement AddTableRowsToTableBody(XElement xamlTableBodyElement, XElement htmlTRStartNode, IDictionary<string, string> currentProperties, ArrayList columnStarts, HtmlToXamlContext context)
+        private static XElement AddTableRowsToTableBody(XElement xamlTableBodyElement, XElement htmlTRStartNode, IDictionary<string, string> currentProperties, IList<double> columnStarts, HtmlToXamlContext context)
         {
             // Parameter validation
             Debug.Assert(xamlTableBodyElement.Name.LocalName == Xaml_TableRowGroup);
@@ -1347,16 +1376,16 @@ namespace MarkupConverter
 
             // Initialize child node for iteratimg through children to the first tr element
             var htmlChildNode = htmlTRStartNode;
-            ArrayList activeRowSpans = null;
+            IList<double> activeRowSpans = null;
             if (columnStarts != null)
             {
-                activeRowSpans = new ArrayList();
+                activeRowSpans = new List<double>();
                 InitializeActiveRowSpans(activeRowSpans, columnStarts.Count);
             }
 
-            while (htmlChildNode != null && htmlChildNode.Name.LocalName.ToLower() != "tbody")
+            while (htmlChildNode != null && !htmlChildNode.Name.TagEquals("tbody"))
             {
-                if (htmlChildNode.Name.LocalName.ToLower() == "tr")
+                if (htmlChildNode.Name.TagEquals("tr"))
                 {
                     XElement xamlTableRowElement = new XElement(XName.Get(Xaml_TableRow, XamlNamespace));
                     PushDestination(xamlTableRowElement, context);
@@ -1380,7 +1409,7 @@ namespace MarkupConverter
                     htmlChildNode = htmlChildNode.ElementsAfterSelf().FirstOrDefault();
 
                 }
-                else if (htmlChildNode.Name.LocalName.ToLower() == "td")
+                else if (htmlChildNode.Name.TagEquals("td"))
                 {
                     // Tr element is not present. We create one and add td elements to it
                     XElement xamlTableRowElement = new XElement(XName.Get(Xaml_TableRow, XamlNamespace));
@@ -1424,7 +1453,7 @@ namespace MarkupConverter
         /// <returns>
         /// XElement representing the current position of the iterator among the children of the parent Html tbody/tr element
         /// </returns>
-        private static XElement AddTableCellsToTableRow(XElement xamlTableRowElement, XElement htmlTDStartNode, IDictionary<string, string> currentProperties, ArrayList columnStarts, ArrayList activeRowSpans, HtmlToXamlContext context)
+        private static XElement AddTableCellsToTableRow(XElement xamlTableRowElement, XElement htmlTDStartNode, IDictionary<string, string> currentProperties, IList<double> columnStarts, IList<double> activeRowSpans, HtmlToXamlContext context)
         {
             // parameter validation
             Debug.Assert(xamlTableRowElement.Name.LocalName == Xaml_TableRow);
@@ -1440,9 +1469,9 @@ namespace MarkupConverter
             int columnIndex = 0;
             int columnSpan = 0;
 
-            while (htmlChildNode != null && htmlChildNode.Name.LocalName.ToLower() != "tr" && htmlChildNode.Name.LocalName.ToLower() != "tbody" && htmlChildNode.Name.LocalName.ToLower() != "thead" && htmlChildNode.Name.LocalName.ToLower() != "tfoot")
+            while (htmlChildNode != null && !htmlChildNode.Name.TagEquals("tr", "tbody", "thead", "tfoot"))
             {
-                if (htmlChildNode.Name.LocalName.ToLower() == "td" || htmlChildNode.Name.LocalName.ToLower() == "th")
+                if (htmlChildNode.Name.TagEquals("td", "th"))
                 {
                     XElement xamlTableCellElement = new XElement(XName.Get(Xaml_TableCell, XamlNamespace));
                     PushDestination(xamlTableCellElement, context);
@@ -1487,7 +1516,14 @@ namespace MarkupConverter
                         columnIndex = columnIndex + columnSpan;
                     }
 
-                    AddDataToTableCell(xamlTableCellElement, htmlChildNode.Elements().FirstOrDefault(), tdElementCurrentProperties, context);
+                    if(!htmlChildNode.HasElements && !htmlChildNode.IsEmpty)
+                    {
+                        AddParagraph(xamlTableCellElement, htmlChildNode, null, context);
+                    }
+                    else
+                    {
+                        AddDataToTableCell(xamlTableCellElement, htmlChildNode.Elements().FirstOrDefault(), tdElementCurrentProperties, context);
+                    }
                     if (xamlTableCellElement.HasElements)
                     {
                         xamlTableRowElement.Add(xamlTableCellElement);
@@ -1547,10 +1583,10 @@ namespace MarkupConverter
         /// In case if analisys was impossible we return null.
         /// </returns>
         /// <param name="context">Conversion context</param>
-        private static ArrayList AnalyzeTableStructure(XElement htmlTableElement, HtmlToXamlContext context)
+        private static IList<double> AnalyzeTableStructure(XElement htmlTableElement, HtmlToXamlContext context)
         {
             // Parameter validation
-            Debug.Assert(htmlTableElement.Name.LocalName.ToLower() == "table");
+            Debug.Assert(htmlTableElement.Name.TagEquals("table"));
             if (!htmlTableElement.HasElements)
             {
                 return null;
@@ -1558,8 +1594,8 @@ namespace MarkupConverter
 
             bool columnWidthsAvailable = true;
 
-            ArrayList columnStarts = new ArrayList();
-            ArrayList activeRowSpans = new ArrayList();
+            var columnStarts = new List<double>();
+            var activeRowSpans = new List<double>();
             Debug.Assert(columnStarts.Count == activeRowSpans.Count);
 
             var htmlChildNode = htmlTableElement.Elements().FirstOrDefault();
@@ -1649,10 +1685,10 @@ namespace MarkupConverter
         /// Calculated width of a tbody.
         /// In case of non-analizable column width structure return 0;
         /// </returns>
-        private static double AnalyzeTbodyStructure(XElement htmlTbodyElement, ArrayList columnStarts, ArrayList activeRowSpans, double tableWidth, HtmlToXamlContext context)
+        private static double AnalyzeTbodyStructure(XElement htmlTbodyElement, IList<double> columnStarts, IList<double> activeRowSpans, double tableWidth, HtmlToXamlContext context)
         {
             // Parameter validation
-            Debug.Assert(htmlTbodyElement.Name.LocalName.ToLower() == "tbody");
+            Debug.Assert(htmlTbodyElement.Name.TagEquals("tbody"));
             Debug.Assert(columnStarts != null);
 
             double tbodyWidth = 0;
@@ -1716,12 +1752,12 @@ namespace MarkupConverter
         /// Return 0 if analisys was insuccessful.
         /// </param>
         /// <param name="context">Conversion context</param>
-        private static double AnalyzeTRStructure(XElement htmlTRElement, ArrayList columnStarts, ArrayList activeRowSpans, double tableWidth, HtmlToXamlContext context)
+        private static double AnalyzeTRStructure(XElement htmlTRElement, IList<double> columnStarts, IList<double> activeRowSpans, double tableWidth, HtmlToXamlContext context)
         {
             double columnWidth;
 
             // Parameter validation
-            Debug.Assert(htmlTRElement.Name.LocalName.ToLower() == "tr");
+            Debug.Assert(htmlTRElement.Name.TagEquals("tr"));
             Debug.Assert(columnStarts != null);
             Debug.Assert(activeRowSpans != null);
             Debug.Assert(columnStarts.Count == activeRowSpans.Count);
@@ -1741,8 +1777,8 @@ namespace MarkupConverter
             // Skip spanned columns to get to real column start
             if (columnIndex < activeRowSpans.Count)
             {
-                Debug.Assert((double)columnStarts[columnIndex] >= columnStart);
-                if ((double)columnStarts[columnIndex] == columnStart)
+                Debug.Assert(columnStarts[columnIndex] >= columnStart);
+                if (columnStarts[columnIndex] == columnStart)
                 {
                     // The new column may be in a spanned area
                     while (columnIndex < activeRowSpans.Count && (int)activeRowSpans[columnIndex] > 0)
@@ -1750,7 +1786,7 @@ namespace MarkupConverter
                         activeRowSpans[columnIndex] = (int)activeRowSpans[columnIndex] - 1;
                         Debug.Assert((int)activeRowSpans[columnIndex] >= 0);
                         columnIndex++;
-                        columnStart = (double)columnStarts[columnIndex];
+                        columnStart = columnStarts[columnIndex];
                     }
                 }
             }
@@ -1910,7 +1946,7 @@ namespace MarkupConverter
         /// </param>
         /// <param name="activeRowSpans"></param>
         /// <returns></returns>
-        private static int GetNextColumnIndex(int columnIndex, double columnWidth, ArrayList columnStarts, ArrayList activeRowSpans)
+        private static int GetNextColumnIndex(int columnIndex, double columnWidth, IList<double> columnStarts, IList<double> activeRowSpans)
         {
             double columnStart;
             int spannedColumnIndex;
@@ -1920,10 +1956,10 @@ namespace MarkupConverter
             Debug.Assert(0 <= columnIndex && columnIndex <= columnStarts.Count);
             Debug.Assert(columnWidth > 0);
 
-            columnStart = (double)columnStarts[columnIndex];
+            columnStart = columnStarts[columnIndex];
             spannedColumnIndex = columnIndex + 1;
 
-            while (spannedColumnIndex < columnStarts.Count && (double)columnStarts[spannedColumnIndex] < columnStart + columnWidth && spannedColumnIndex != -1)
+            while (spannedColumnIndex < columnStarts.Count && columnStarts[spannedColumnIndex] < columnStart + columnWidth && spannedColumnIndex != -1)
             {
                 if ((int)activeRowSpans[spannedColumnIndex] > 0)
                 {
@@ -1947,7 +1983,7 @@ namespace MarkupConverter
         /// <param name="activeRowSpans">
         /// ArrayList representing currently active row spans
         /// </param>
-        private static void ClearActiveRowSpans(ArrayList activeRowSpans)
+        private static void ClearActiveRowSpans(IList<double> activeRowSpans)
         {
             for (int columnIndex = 0; columnIndex < activeRowSpans.Count; columnIndex++)
             {
@@ -1964,7 +2000,7 @@ namespace MarkupConverter
         /// <param name="count">
         /// Size to be give to array list
         /// </param>
-        private static void InitializeActiveRowSpans(ArrayList activeRowSpans, int count)
+        private static void InitializeActiveRowSpans(IList<double> activeRowSpans, int count)
         {
             for (int columnIndex = 0; columnIndex < count; columnIndex++)
             {
@@ -1989,7 +2025,7 @@ namespace MarkupConverter
             double nextColumnStart;
 
             // Parameter validation
-            Debug.Assert(htmlTDElement.Name.LocalName.ToLower() == "td" || htmlTDElement.Name.LocalName.ToLower() == "th");
+            Debug.Assert(htmlTDElement.Name.TagEquals("td", "th"));
             Debug.Assert(columnStart >= 0);
 
             nextColumnStart = -1;  // -1 indicates inability to calculate columnStart width
@@ -2045,7 +2081,7 @@ namespace MarkupConverter
         /// <param name="columnStarts">
         /// ArrayList repsenting starting coordinates of all columns
         /// </param>
-        private static int CalculateColumnSpan(int columnIndex, double columnWidth, ArrayList columnStarts)
+        private static int CalculateColumnSpan(int columnIndex, double columnWidth, IList<double> columnStarts)
         {
             // Current status of column width. Indicates the amount of width that has been scanned already
             double columnSpanningValue;
@@ -2086,7 +2122,7 @@ namespace MarkupConverter
         /// <param name="columnStarts">
         /// ArrayList representing starting coordinates of all columns
         /// </param>
-        private static void VerifyColumnStartsAscendingOrder(ArrayList columnStarts)
+        private static void VerifyColumnStartsAscendingOrder(IList<double> columnStarts)
         {
             Debug.Assert(columnStarts != null);
 
@@ -2096,8 +2132,8 @@ namespace MarkupConverter
 
             for (int columnIndex = 0; columnIndex < columnStarts.Count; columnIndex++)
             {
-                Debug.Assert(columnStart < (double)columnStarts[columnIndex]);
-                columnStart = (double)columnStarts[columnIndex];
+                Debug.Assert(columnStart < columnStarts[columnIndex]);
+                columnStart = columnStarts[columnIndex];
             }
         }
 
@@ -2346,6 +2382,13 @@ namespace MarkupConverter
 
                     case "display":
                         break;
+
+                    case "border-collapse":
+                        if("collapse".Equals(property.Value.ToLower()))
+                        {
+                            xamlElement.SetAttributeValue(Xaml_Table_CellSpacing, "0");
+                        }
+                        break;
                 }
             }
 
@@ -2474,6 +2517,11 @@ namespace MarkupConverter
         {
             // Start with context formatting properties
             IDictionary<string, string> currentProperties = new Dictionary<string, string>();
+            if (inheritedProperties == null)
+            {
+                localProperties = currentProperties;
+                return localProperties;
+            }
             foreach(var property in inheritedProperties)
             {
                 currentProperties[property.Key] = property.Value;
@@ -2728,6 +2776,24 @@ namespace MarkupConverter
         }
 
         /// <summary>
+        /// Checks if html tag is equal to a provided text
+        /// </summary>
+        /// <param name="tag">html tag</param>
+        /// <param name="values">values to compare (any match)</param>
+        /// <returns>true if tag equals any value</returns>
+        private static bool TagEquals(this XName tag, params string[] values)
+        {
+            foreach (var value in values)
+            {
+                if (value.Equals(tag.LocalName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Applies properties to xamlTableCellElement based on the html td element it is converted from.
         /// </summary>
         /// <param name="htmlChildNode">
@@ -2742,7 +2808,7 @@ namespace MarkupConverter
         private static void ApplyPropertiesToTableCellElement(XElement htmlChildNode, XElement xamlTableCellElement)
         {
             // Parameter validation
-            Debug.Assert(htmlChildNode.Name.LocalName.ToLower() == "td" || htmlChildNode.Name.LocalName.ToLower() == "th");
+            Debug.Assert(htmlChildNode.Name.TagEquals("td", "th"));
             Debug.Assert(xamlTableCellElement.Name.LocalName == Xaml_TableCell);
 
             // set default border thickness for xamlTableCellElement to enable gridlines
@@ -2801,6 +2867,9 @@ namespace MarkupConverter
 
         public const string Xaml_Table = "Table";
 
+        public const string Xaml_Table_CellSpacing = "CellSpacing";
+
+        public const string Xaml_TableColumns = "Table.Columns";
         public const string Xaml_TableColumn = "TableColumn";
         public const string Xaml_TableRowGroup = "TableRowGroup";
         public const string Xaml_TableRow = "TableRow";

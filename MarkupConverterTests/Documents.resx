@@ -126,6 +126,83 @@
   <data name="MultipleFontStyles_Xaml" xml:space="preserve">
     <value>&lt;FlowDocument xml:space="preserve" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;&lt;Paragraph&gt;&lt;Run FontStyle="Italic" FontWeight="Bold" xml:space="preserve"&gt;&lt;Run.TextDecorations&gt;&lt;TextDecoration Location="Strikethrough" /&gt;&lt;TextDecoration Location="Underline" /&gt;&lt;/Run.TextDecorations&gt;word1 &lt;/Run&gt;word2&lt;/Paragraph&gt;&lt;/FlowDocument&gt;</value>
   </data>
+  <data name="Table_Html" xml:space="preserve">
+    <value>&lt;div style="font-family: Verdana; font-size: 18.7px;"&gt;
+&lt;table style="border-collapse: collapse; width: 100px;"&gt;
+&lt;colgroup&gt;
+&lt;col style="width: 150px;" /&gt;
+&lt;col style="width: 200px;" /&gt;
+&lt;col style="width: 250px;" /&gt;
+&lt;/colgroup&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style="padding: 0px 8px 0px 8px; border: 1px solid #000000;"&gt;&amp;nbsp;&lt;/td&gt;
+&lt;td style="padding: 0px 8px 0px 8px; border: 1px solid #000000;"&gt;a&lt;/td&gt;
+&lt;td style="padding: 0px 8px 0px 8px; border: 1px solid #000000;"&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="padding: 0px 8px 0px 8px; border: 1px solid #000000;"&gt;b&lt;/td&gt;
+&lt;td style="padding: 0px 8px 0px 8px; border: 1px solid #000000;"&gt;
+&lt;p style="margin: 0px 0px 0px 0px; text-align: Left; font-family: Calibri; font-size: 14.7px; text-indent: 0;"&gt;c&lt;/p&gt;
+&lt;/td&gt;
+&lt;td style="padding: 0px 8px 0px 8px; border: 1px solid #000000;"&gt;d&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="padding: 0px 8px 0px 8px; border: 1px solid #000000;"&gt;&lt;/td&gt;
+&lt;td style="padding: 0px 8px 0px 8px; border: 1px solid #000000;"&gt;&lt;/td&gt;
+&lt;td style="padding: 0px 8px 0px 8px; border: 1px solid #000000;"/&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="padding: 0px 8px 0px 8px; border: 1px solid #000000;"&gt;&amp;nbsp;&lt;/td&gt;
+&lt;td style="padding: 0px 8px 0px 8px; border: 1px solid #000000;"&gt;e&lt;/td&gt;
+&lt;td style="padding: 0px 8px 0px 8px; border: 1px solid #000000;"&gt;&amp;nbsp;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p style="text-indent: 0; margin: 0px 0px 0px 0px;"&gt;label&lt;/p&gt;
+&lt;/div&gt;</value>
+  </data>
+  <data name="Table_HtmlFromXaml" xml:space="preserve">
+    <value>&lt;html&gt;&lt;body style="font-family:Verdana;font-size:18.7px;"&gt;&lt;table style="border-collapse:collapse;"&gt;&lt;colgroup&gt;&lt;col style="width:100px;" /&gt;&lt;col style="width:200px;" /&gt;&lt;/colgroup&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td style="padding:0px 8px 0px 8px;border-width:1px 1px 1px 1px;border-color:#000000;border-style:solid;"&gt;&lt;p style="margin:0px 0px 0px 0px;text-align:Left;font-family:Calibri;font-size:14.7px;"&gt;&lt;span&gt;a&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style="padding:0px 8px 0px 8px;border-width:1px 1px 1px 1px;border-color:#000000;border-style:solid;"&gt;&lt;p style="margin:0px 0px 0px 0px;text-align:Left;font-family:Calibri;font-size:14.7px;"&gt;&lt;span&gt;b&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style="padding:0px 8px 0px 8px;border-width:1px 1px 1px 1px;border-color:#000000;border-style:solid;"&gt;&lt;p style="margin:0px 0px 0px 0px;text-align:Left;font-family:Calibri;font-size:14.7px;" /&gt;&lt;/td&gt;&lt;td style="padding:0px 8px 0px 8px;border-width:1px 1px 1px 1px;border-color:#000000;border-style:solid;"&gt;&lt;p style="margin:0px 0px 0px 0px;text-align:Left;font-family:Calibri;font-size:14.7px;"&gt;&lt;span&gt;z&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;p style="text-indent:0;margin:0px 0px 0px 0px;" /&gt;&lt;/body&gt;&lt;/html&gt;</value>
+  </data>
+  <data name="Table_Xaml" xml:space="preserve">
+    <value>&lt;FlowDocument FontFamily="Verdana" FontSize="18.6666666666667" PagePadding="4,4,4,4" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;
+    &lt;Table CellSpacing="0"&gt;
+        &lt;Table.Columns&gt;
+            &lt;TableColumn Width="100" /&gt;
+            &lt;TableColumn Width="200" /&gt;
+        &lt;/Table.Columns&gt;
+        &lt;TableRowGroup&gt;
+            &lt;TableRow&gt;
+                &lt;TableCell Padding="7.2,0,7.2,0" BorderThickness="1,1,1,1" BorderBrush="#FF000000"&gt;
+                    &lt;Paragraph Margin="0,0,0,0" TextAlignment="Left" FontFamily="Calibri" FontSize="14.6666666666667"&gt;
+                        &lt;Span xml:lang="en-gb"&gt;a&lt;/Span&gt;
+                    &lt;/Paragraph&gt;
+                &lt;/TableCell&gt;
+                &lt;TableCell Padding="7.2,0,7.2,0" BorderThickness="1,1,1,1" BorderBrush="#FF000000"&gt;
+                    &lt;Paragraph Margin="0,0,0,0" TextAlignment="Left" FontFamily="Calibri" FontSize="14.6666666666667"&gt;
+                        &lt;Span xml:lang="en-gb"&gt;b&lt;/Span&gt;
+                    &lt;/Paragraph&gt;
+                &lt;/TableCell&gt;
+            &lt;/TableRow&gt;
+            &lt;TableRow&gt;
+                &lt;TableCell Padding="7.2,0,7.2,0" BorderThickness="1,1,1,1" BorderBrush="#FF000000"&gt;
+                    &lt;Paragraph Margin="0,0,0,0" TextAlignment="Left" FontFamily="Calibri" FontSize="14.6666666666667" /&gt;
+                &lt;/TableCell&gt;
+                &lt;TableCell Padding="7.2,0,7.2,0" BorderThickness="1,1,1,1" BorderBrush="#FF000000"&gt;
+                    &lt;Paragraph Margin="0,0,0,0" TextAlignment="Left" FontFamily="Calibri" FontSize="14.6666666666667"&gt;
+                        &lt;Span xml:lang="en-gb"&gt;z&lt;/Span&gt;
+                    &lt;/Paragraph&gt;
+                &lt;/TableCell&gt;
+            &lt;/TableRow&gt;
+        &lt;/TableRowGroup&gt;
+    &lt;/Table&gt;
+    &lt;Paragraph TextIndent="0" Margin="0,0,0,0" xml:space="preserve" /&gt;
+&lt;/FlowDocument&gt;</value>
+  </data>
+  <data name="Table_XamlFromHtml" xml:space="preserve">
+    <value>&lt;FlowDocument xml:space="preserve" FontFamily="verdana" FontSize="18.6666666666667" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"&gt;&lt;Table CellSpacing="0"&gt;&lt;Table.Columns&gt;&lt;TableColumn Width="25" /&gt;&lt;TableColumn Width="33.3333333333333" /&gt;&lt;TableColumn Width="41.6666666666667" /&gt;&lt;/Table.Columns&gt;&lt;TableRowGroup&gt;&lt;TableRow&gt;&lt;TableCell BorderThickness="1,1,1,1" BorderBrush="Black"&gt;&lt;Paragraph&gt; &lt;/Paragraph&gt;&lt;/TableCell&gt;&lt;TableCell BorderThickness="1,1,1,1" BorderBrush="Black"&gt;&lt;Paragraph&gt;a&lt;/Paragraph&gt;&lt;/TableCell&gt;&lt;TableCell BorderThickness="1,1,1,1" BorderBrush="Black"&gt;&lt;Paragraph&gt; &lt;/Paragraph&gt;&lt;/TableCell&gt;&lt;/TableRow&gt;&lt;TableRow&gt;&lt;TableCell BorderThickness="1,1,1,1" BorderBrush="Black"&gt;&lt;Paragraph&gt;b&lt;/Paragraph&gt;&lt;/TableCell&gt;&lt;TableCell BorderThickness="1,1,1,1" BorderBrush="Black"&gt;&lt;Paragraph TextAlignment="left" FontFamily="calibri" FontSize="14.6666666666667" TextIndent="0" Margin="0"&gt;c&lt;/Paragraph&gt;&lt;/TableCell&gt;&lt;TableCell BorderThickness="1,1,1,1" BorderBrush="Black"&gt;&lt;Paragraph&gt;d&lt;/Paragraph&gt;&lt;/TableCell&gt;&lt;/TableRow&gt;&lt;TableRow&gt;&lt;TableCell BorderThickness="1,1,1,1" BorderBrush="Black"&gt;&lt;Paragraph&gt; &lt;/Paragraph&gt;&lt;/TableCell&gt;&lt;TableCell BorderThickness="1,1,1,1" BorderBrush="Black"&gt;&lt;Paragraph&gt;e&lt;/Paragraph&gt;&lt;/TableCell&gt;&lt;TableCell BorderThickness="1,1,1,1" BorderBrush="Black"&gt;&lt;Paragraph&gt; &lt;/Paragraph&gt;&lt;/TableCell&gt;&lt;/TableRow&gt;&lt;/TableRowGroup&gt;&lt;/Table&gt;&lt;Paragraph TextIndent="0" Margin="0"&gt;label&lt;/Paragraph&gt;&lt;/FlowDocument&gt;</value>
+  </data>
   <data name="TestParagraph_Html" xml:space="preserve">
     <value>&lt;p style="text-indent:0;margin:0px 0px 0px 0px;font-family:Verdana;font-size:16px;"&gt;Paragraph 1&lt;/p&gt;&lt;p /&gt;&lt;p style="text-indent:0;margin:0px 0px 0px 0px;font-family:Verdana;font-size:16px;"&gt;Paragraph 2&lt;/p&gt;&lt;p style="text-indent:-22;margin:0px 0px 0px 38px;font-family:Verdana;font-size:16px;"&gt;Test &lt;span&gt;capacitor&lt;/span&gt; inductor&lt;/p&gt;&lt;p style="text-indent:-22;margin:0px 0px 0px 38px;font-family:Verdana;font-size:16px;"&gt;Transistor &lt;span&gt;resistor&lt;/span&gt;&lt;/p&gt;&lt;p /&gt;</value>
   </data>

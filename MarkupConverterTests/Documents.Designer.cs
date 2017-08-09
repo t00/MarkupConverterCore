@@ -89,6 +89,65 @@ namespace MarkupConverterTests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;div style=&quot;font-family: Verdana; font-size: 18.7px;&quot;&gt;
+        ///&lt;table style=&quot;border-collapse: collapse; width: 100px;&quot;&gt;
+        ///&lt;colgroup&gt;
+        ///&lt;col style=&quot;width: 150px;&quot; /&gt;
+        ///&lt;col style=&quot;width: 200px;&quot; /&gt;
+        ///&lt;col style=&quot;width: 250px;&quot; /&gt;
+        ///&lt;/colgroup&gt;
+        ///&lt;tbody&gt;
+        ///&lt;tr&gt;
+        ///&lt;td style=&quot;padding: 0px 8px 0px 8px; border: 1px solid #000000;&quot;&gt;&amp;nbsp;&lt;/td&gt;
+        ///&lt;td style=&quot;padding: 0px 8px 0px 8px; border: 1px solid #000000;&quot;&gt;a&lt;/td&gt;
+        ///&lt;td style=&quot;padding: 0px 8px 0px 8px; border: 1px solid #000000;&quot;&gt;&amp;nbsp;&lt;/td&gt;
+        ///&lt;/tr&gt;
+        ///&lt;tr&gt;
+        ///&lt;td style=&quot;padding: 0px [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Table_Html {
+            get {
+                return ResourceManager.GetString("Table_Html", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;html&gt;&lt;body style=&quot;font-family:Verdana;font-size:18.7px;&quot;&gt;&lt;table style=&quot;border-collapse:collapse;&quot;&gt;&lt;colgroup&gt;&lt;col style=&quot;width:100px;&quot; /&gt;&lt;col style=&quot;width:200px;&quot; /&gt;&lt;/colgroup&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td style=&quot;padding:0px 8px 0px 8px;border-width:1px 1px 1px 1px;border-color:#000000;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px 0px 0px 0px;text-align:Left;font-family:Calibri;font-size:14.7px;&quot;&gt;&lt;span&gt;a&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot;padding:0px 8px 0px 8px;border-width:1px 1px 1px 1px;border-color:#000000;border-style:solid;&quot;&gt;&lt;p [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Table_HtmlFromXaml {
+            get {
+                return ResourceManager.GetString("Table_HtmlFromXaml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;FlowDocument FontFamily=&quot;Verdana&quot; FontSize=&quot;18.6666666666667&quot; PagePadding=&quot;4,4,4,4&quot; xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;&gt;
+        ///    &lt;Table CellSpacing=&quot;0&quot;&gt;
+        ///        &lt;Table.Columns&gt;
+        ///            &lt;TableColumn Width=&quot;100&quot; /&gt;
+        ///            &lt;TableColumn Width=&quot;200&quot; /&gt;
+        ///        &lt;/Table.Columns&gt;
+        ///        &lt;TableRowGroup&gt;
+        ///            &lt;TableRow&gt;
+        ///                &lt;TableCell Padding=&quot;7.2,0,7.2,0&quot; BorderThickness=&quot;1,1,1,1&quot; BorderBrush=&quot;#FF000000&quot;&gt;
+        ///                    &lt;Paragraph Margin=&quot;0,0,0,0&quot; [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Table_Xaml {
+            get {
+                return ResourceManager.GetString("Table_Xaml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;FlowDocument xml:space=&quot;preserve&quot; FontFamily=&quot;verdana&quot; FontSize=&quot;18.6666666666667&quot; xmlns=&quot;http://schemas.microsoft.com/winfx/2006/xaml/presentation&quot;&gt;&lt;Table CellSpacing=&quot;0&quot;&gt;&lt;Table.Columns&gt;&lt;TableColumn Width=&quot;25&quot; /&gt;&lt;TableColumn Width=&quot;33.3333333333333&quot; /&gt;&lt;TableColumn Width=&quot;41.6666666666667&quot; /&gt;&lt;/Table.Columns&gt;&lt;TableRowGroup&gt;&lt;TableRow&gt;&lt;TableCell BorderThickness=&quot;1,1,1,1&quot; BorderBrush=&quot;Black&quot;&gt;&lt;Paragraph&gt; &lt;/Paragraph&gt;&lt;/TableCell&gt;&lt;TableCell BorderThickness=&quot;1,1,1,1&quot; BorderBrush=&quot;Black&quot;&gt;&lt;Paragraph&gt;a&lt;/Paragraph&gt;&lt;/T [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Table_XamlFromHtml {
+            get {
+                return ResourceManager.GetString("Table_XamlFromHtml", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;p style=&quot;text-indent:0;margin:0px 0px 0px 0px;font-family:Verdana;font-size:16px;&quot;&gt;Paragraph 1&lt;/p&gt;&lt;p /&gt;&lt;p style=&quot;text-indent:0;margin:0px 0px 0px 0px;font-family:Verdana;font-size:16px;&quot;&gt;Paragraph 2&lt;/p&gt;&lt;p style=&quot;text-indent:-22;margin:0px 0px 0px 38px;font-family:Verdana;font-size:16px;&quot;&gt;Test &lt;span&gt;capacitor&lt;/span&gt; inductor&lt;/p&gt;&lt;p style=&quot;text-indent:-22;margin:0px 0px 0px 38px;font-family:Verdana;font-size:16px;&quot;&gt;Transistor &lt;span&gt;resistor&lt;/span&gt;&lt;/p&gt;&lt;p /&gt;.
         /// </summary>
         internal static string TestParagraph_Html {

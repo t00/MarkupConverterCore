@@ -117,14 +117,14 @@ namespace MarkupConverter
         /// <summary>
         /// returns true when XElementName corresponds to empty element 
         /// </summary>
-        /// <param name="XElementName">
+        /// <param name="elementName">
         /// string representing name to test
         /// </param>
-        internal static bool IsEmptyElement(string XElementName)
+        internal static bool IsEmptyElement(string elementName)
         {
             // convert to lowercase before we check
             // because element names are not case sensitive
-            return _htmlEmptyElements.Contains(XElementName.ToLower());
+            return _htmlEmptyElements.Contains(elementName.ToLower());
         }
 
         /// <summary>
@@ -132,11 +132,11 @@ namespace MarkupConverter
         /// It used in an algorithm of transferring inline elements over block elements
         /// in HtmlParser
         /// </summary>
-        /// <param name="XElementName"></param>
+        /// <param name="elementName"></param>
         /// <returns></returns>
-        internal static bool IsBlockElement(string XElementName)
+        internal static bool IsBlockElement(string elementName)
         {
-            return _htmlBlockElements.Contains(XElementName);
+            return _htmlBlockElements.Contains(elementName.ToLower());
         }
 
         /// <summary>
@@ -166,13 +166,13 @@ namespace MarkupConverter
         /// returns true when XElementName closes when the outer element closes
         /// this is true of elements with optional start tags
         /// </summary>
-        /// <param name="XElementName">
+        /// <param name="elementName">
         /// string representing name to test
         /// </param>
-        internal static bool ClosesOnParentElementEnd(string XElementName)
+        internal static bool ClosesOnParentElementEnd(string elementName)
         {
             // convert to lowercase when testing
-            return _htmlElementsClosingOnParentElementEnd.Contains(XElementName.ToLower());
+            return _htmlElementsClosingOnParentElementEnd.Contains(elementName.ToLower());
         }
 
         /// <summary>

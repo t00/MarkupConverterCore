@@ -183,6 +183,12 @@ namespace MarkupConverter
                             case "clear":
                                 ParseCssClear(styleValue, ref nextIndex, localProperties);
                                 break;
+                            case "border-collapse":
+                                if ("collapse".Equals(styleValue))
+                                {
+                                    localProperties.Add("border-collapse", "collapse");
+                                }
+                                break;
 
                             default:
                                 break;
