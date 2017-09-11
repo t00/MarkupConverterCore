@@ -75,7 +75,7 @@ namespace MarkupConverter
     /// of well-formed Html that is as close to the original string in content as possible
     /// </summary>
 
-    internal class HtmlParser
+    public class HtmlParser
     {
         // ---------------------------------------------------------------------
         //
@@ -127,7 +127,7 @@ namespace MarkupConverter
         /// <returns>
         /// XElement rep
         /// </returns>
-        internal static XElement ParseHtml(string htmlString)
+        public static XElement ParseHtml(string htmlString)
         {
             HtmlParser htmlParser = new HtmlParser(htmlString);
 
