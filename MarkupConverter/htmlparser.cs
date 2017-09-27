@@ -337,7 +337,10 @@ namespace MarkupConverter
                 }
                 else if (_htmlLexicalAnalyzer.NextTokenType == HtmlTokenType.Text)
                 {
-                    AddTextContent(_htmlLexicalAnalyzer.NextToken);
+                    if (!string.IsNullOrEmpty(_htmlLexicalAnalyzer.NextToken))
+                    {
+                        AddTextContent(_htmlLexicalAnalyzer.NextToken);
+                    }
                 }
                 else if (_htmlLexicalAnalyzer.NextTokenType == HtmlTokenType.Comment)
                 {
