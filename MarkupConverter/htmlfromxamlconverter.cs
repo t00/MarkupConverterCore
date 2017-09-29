@@ -568,7 +568,7 @@ namespace MarkupConverter
                     {
                         if (decorations.Any())
                         {
-                            inlineStyle.Append($"text-decoration:{string.Join(" ", decorations)};");
+                            inlineStyle?.Append($"text-decoration:{string.Join(" ", decorations)};");
                         }
                         break;
                     }
