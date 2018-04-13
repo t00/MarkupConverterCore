@@ -697,6 +697,12 @@ namespace MarkupConverter
         {
             var subElements = new List<string>();
 
+            var elementName = xamlReader.LocalName;
+            if (!string.IsNullOrEmpty(elementName))
+            {
+                context.AddReaderElement(elementName);
+            }
+
             if (!string.IsNullOrEmpty(htmlElementName))
             {
                 htmlWriter.WriteStartElement(htmlElementName);
@@ -719,6 +725,11 @@ namespace MarkupConverter
             if (!string.IsNullOrEmpty(htmlElementName))
             {
                 htmlWriter.WriteEndElement();
+            }
+
+            if (!string.IsNullOrEmpty(elementName))
+            {
+                context.RemoveReaderElement(elementName);
             }
         }
 

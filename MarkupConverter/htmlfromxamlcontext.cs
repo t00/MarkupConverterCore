@@ -32,6 +32,8 @@ namespace MarkupConverter
 
         public IReadOnlyList<HtmlFromXamlTableInfo> Tables => tables.AsReadOnly();
 
+        public IReadOnlyList<string> ReaderElements => readerElements.AsReadOnly();
+
         public HtmlFromXamlTableInfo CurrentTable => (tableIndex >= 0 && tableIndex < Tables.Count) ? Tables[tableIndex] : null;
 
         internal HtmlFromXamlTableInfo AddTable()
@@ -48,7 +50,34 @@ namespace MarkupConverter
             return CurrentTable;
         }
 
-        private List<HtmlFromXamlTableInfo> tables = new List<HtmlFromXamlTableInfo>();
+        internal void AddReaderElement(string elementName)
+        {
+            readerElements.Add(elementName);
+        }
+
+        public void RemoveReaderElement(string elementName)
+        {
+            var i = readerElements.Count - 1;
+            while (i >= 0 && readerElements[i] != elementName)
+            {
+                readerElements.RemoveAt(i);
+                i--;
+            }
+
+            if (i >= 0 && readerElements[i] == elementName)
+            {
+                readerElements.RemoveAt(i);
+                OnElementClosed(elementName);
+            }
+        }
+
+        protected virtual void OnElementClosed(string elementName)
+        {
+            
+        }
+
+        private readonly List<HtmlFromXamlTableInfo> tables = new List<HtmlFromXamlTableInfo>();
+        private readonly List<string> readerElements = new List<string>();
         private int tableIndex;
     }
 }
