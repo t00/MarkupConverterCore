@@ -536,6 +536,10 @@ namespace MarkupConverter
                             {
                                 fontFamily = null;
                             }
+                            else
+                            {
+                                fontFamily = fontFamily.Replace("\\ ", " ");
+                            }
                         }
                     }
                 }
