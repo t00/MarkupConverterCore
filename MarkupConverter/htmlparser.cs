@@ -524,7 +524,22 @@ namespace MarkupConverter
                     _htmlLexicalAnalyzer.GetNextAtomToken();
 
                     string attributeValue = _htmlLexicalAnalyzer.NextToken;
-                    XElement.SetAttributeValue(attributeName, attributeValue);
+                    try
+                    {
+                        XElement.SetAttributeValue(attributeName, attributeValue);
+                    }
+                    catch (XmlException)
+                    {
+                        attributeName = attributeValue.Replace(":", "");
+                        try
+                        {
+                            XElement.SetAttributeValue(attributeName, attributeValue);
+                        }
+                        catch (XmlException)
+                        {
+                            // skip element
+                        }
+                    }
                 }
                 _htmlLexicalAnalyzer.GetNextTagToken();
             }
